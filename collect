@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# TrueTemp 数据采集快捷命令：自动使用项目 .venv 运行 collect_data.py
+# 用法: ./collect scan | ./collect collect --ref <UUID> --dut <UUID> [--interval 5] | ./collect collect --demo 5
+DIR="$(cd "$(dirname "$0")" && pwd)"
+exec "$DIR/.venv/bin/python" "$DIR/collect_data.py" "$@"

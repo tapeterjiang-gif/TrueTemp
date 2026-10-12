@@ -1,0 +1,15 @@
+============================================================
+训练数据: 50D6_Data.xlsx
+============================================================
+Traceback (most recent call last):
+  File "/Users/peterjiang/Library/Mobile Documents/com~apple~CloudDocs/Documents/trae_projects/TrueTemp/explore_data.py", line 10, in <module>
+    train = pd.read_excel(train_path)
+  File "/Users/peterjiang/Library/Python/3.9/lib/python/site-packages/pandas/io/excel/_base.py", line 495, in read_excel
+    io = ExcelFile(
+  File "/Users/peterjiang/Library/Python/3.9/lib/python/site-packages/pandas/io/excel/_base.py", line 1550, in __init__
+    ext = inspect_excel_format(
+  File "/Users/peterjiang/Library/Python/3.9/lib/python/site-packages/pandas/io/excel/_base.py", line 1402, in inspect_excel_format
+    with get_handle(
+  File "/Users/peterjiang/Library/Python/3.9/lib/python/site-packages/pandas/io/common.py", line 882, in get_handle
+    handle = open(handle, ioargs.mode)
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/peterjiang/Library/Mobile Documents/com~apple~CloudDocs/Documents/trae_projects/TrueTemp/50D6_Data.xlsx'
