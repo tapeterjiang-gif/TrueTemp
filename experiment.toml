@@ -1,0 +1,14 @@
+[[sessions]]
+path = "data/20260910-213757-256774"
+experiment_id = "experiment-01"
+condition_id = "initial"
+split = "train"
+
+[[sessions]]
+path = "data/validation01"
+experiment_id = "experiment-02"
+condition_id = "initial"
+split = "validation"
+
+[alignment]
+max_gap = "2s"

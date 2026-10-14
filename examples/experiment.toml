@@ -1,0 +1,36 @@
+# 会话路径相对此文件；将示例替换为真实的独立实验。
+[[sessions]]
+path = "../data/train01"
+experiment_id = "experiment-01"
+condition_id = "screen-off"
+phase = "steady"
+split = "train"
+# 排除相对会话最早有效报文的秒数，左闭右开；需要注明原因。
+# exclude = [{start = 0, end = 30, reason = "镜像初始化"}]
+
+[[sessions]]
+path = "../data/valid01"
+experiment_id = "experiment-02"
+condition_id = "screen-off"
+phase = "steady"
+split = "validation"
+
+[[sessions]]
+path = "../data/test01"
+experiment_id = "experiment-03"
+condition_id = "screen-off"
+phase = "steady"
+split = "test"
+
+[alignment]
+max_gap = "2s"
+
+# 确认真实验收范围后再启用；以下湿度范围仅为语法示例。
+# 每个温度 × 湿度 × 工况组合都需满足最小样本数。
+# [coverage]
+# temperature_range = [0, 60]
+# humidity_range = [20, 80]
+# temperature_bin_width = 10
+# humidity_bin_width = 10
+# conditions = ["screen-off", "screen-on"]
+# min_samples_per_cell = 20
