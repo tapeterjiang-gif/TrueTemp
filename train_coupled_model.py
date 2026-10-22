@@ -267,7 +267,10 @@ def export_model_for_deploy(model_temp, model_de, feature_cols):
 
 def main():
     filepaths = [
-        'data/20260912_2328.xlsx',
+        'data/20261021_2106.xlsx',
+        'data/20261022_0950.xlsx',
+        'data/20261022_1648.xlsx',
+        'data/20261022_1745.xlsx',
     ]
 
     print('Loading and merging data...')

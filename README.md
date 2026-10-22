@@ -13,6 +13,7 @@
 ```
 data/                      训练/测试数据（5 个 Excel，REF-50D6 + 2D58 两个 sheet）
 models/                    模型文件（.pkl / .json / .h）
+esp32/                     ESP32 集成（truetemp.h / truetemp.c / 生成的数据头文件）
 train_coupled_model.py     两阶段训练
 exam.py                    用 .pkl 模型评估（依赖 lightgbm）
 exam_model.py              用 JSON 树模型评估（不依赖 lightgbm）
@@ -99,6 +100,44 @@ python3 gen_c_model.py models/model_temperature.json models/model_temperature.h 
 # 加 --float 生成 NEON 优化 float 版
 python3 gen_c_model.py --float
 ```
+
+### ESP32 集成
+
+重新训练模型后，先重新生成 ESP32 模型数据：
+
+```bash
+python3 gen_c_model.py --esp32     # 输出 esp32/truetemp_model_data.h
+```
+
+集成步骤：
+
+1. 把 `esp32/truetemp.h`、`esp32/truetemp.c`、`esp32/truetemp_model_data.h` 加入工程。
+   - ESP-IDF：放进 `main/` 组件目录即可
+   - Arduino-ESP32：放进 sketch 目录
+2. 调用 `truetemp_compensate()`：
+
+```c
+#include "truetemp.h"
+
+truetemp_input_t in = {
+    .raw_temperature = 26.1f, .raw_humidity = 25.3f,   // 传感器原始读数
+    .temperature_soc = 38.2f, .temperature_co2 = 32.0f,
+    .time_uptime = 7200.0f, .screen_brightness = 80.0f,
+    .screen_on_duration_s = 0.0f, .cpu_load_10s = 11.0f,
+    .wifi_load_10s = 3.0f, .power_charge_ma = 0.0f,
+    .c5_soc_temp = 30.9f,
+};
+truetemp_output_t out;
+truetemp_compensate(&in, &out);
+// out.temperature, out.humidity, out.dew_point, out.absolute_humidity
+```
+
+说明：
+
+- 输入单位必须与训练数据一致：温度 °C、湿度 %、时间 秒、负载 %、充电电流 mA
+- 模型数据 27,736 个节点、约 **325 KiB**，`static const` 放在 flash，不占内部 RAM
+- 全程 float 运算（ESP32 无硬件 double），单次推理约 5000 次节点访问，1~10 秒调用一次即可
+- 调度器/中断里没有动态内存分配和阻塞调用，可安全放在任务上下文调用
 
 ### C 推理编译（RK3506）
 
