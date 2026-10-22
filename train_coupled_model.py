@@ -1,5 +1,5 @@
 """
-QingThermal 温湿耦合补偿 — 两阶段高精度训练
+温湿耦合补偿 — 两阶段高精度训练
 =================================================
 
 Stage 1: LightGBM → Temperature Compensation (T_comp)

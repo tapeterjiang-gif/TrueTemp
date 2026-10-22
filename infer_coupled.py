@@ -1,5 +1,5 @@
 """
-QingThermal 温湿耦合补偿 — 两阶段推理 (RK PX30 / Python 3)
+温湿耦合补偿 — 两阶段推理 (RK PX30 / Python 3)
 =========================================================
 Stage 1: LightGBM 预测补偿后温度 T_comp
 Stage 2: LightGBM 预测水汽压残差 δe

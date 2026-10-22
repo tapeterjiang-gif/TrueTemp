@@ -1,4 +1,4 @@
-# TrueTemp / QingThermal 温湿耦合补偿
+# TrueTemp 温湿耦合补偿
 
 校准 DUT 设备（sheet `2D58`）的温湿度传感器读数。设备因自发热（SoC 温度、充电、亮屏、CPU 负载等）导致原始读数偏离真实环境值，使用参考仪器（sheet `REF-50D6`）作为真值训练两阶段 LightGBM 补偿模型。
 
