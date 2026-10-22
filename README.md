@@ -106,7 +106,9 @@ python3 gen_c_model.py --float
 重新训练模型后，先重新生成 ESP32 模型数据：
 
 ```bash
-python3 gen_c_model.py --esp32     # 输出 esp32/truetemp_model_data.h
+python3 gen_c_model.py --esp32              # 默认 200 棵树/模型，约 87 KiB
+python3 gen_c_model.py --esp32 --trees 150  # 更小，约 65 KiB
+python3 gen_c_model.py --esp32 --trees 500  # 保留完整模型，约 218 KiB
 ```
 
 集成步骤：
@@ -135,8 +137,9 @@ truetemp_compensate(&in, &out);
 说明：
 
 - 输入单位必须与训练数据一致：温度 °C、湿度 %、时间 秒、负载 %、充电电流 mA
-- 模型数据 27,736 个节点、约 **325 KiB**，`static const` 放在 flash，不占内部 RAM
-- 全程 float 运算（ESP32 无硬件 double），单次推理约 5000 次节点访问，1~10 秒调用一次即可
+- 模型数据默认 11,176 个节点、约 **87 KiB**（200 棵树/模型，int16 量化），`static const` 放在 flash，不占内部 RAM
+- 叶子值与阈值量化为 int16，相比 float 版最大误差约 0.008°C；200 棵树与 500 棵树的留出集 RMSE 基本一致
+- 全程 float 运算（ESP32 无硬件 double），单次推理约 2000 次节点访问，1~10 秒调用一次即可
 - 调度器/中断里没有动态内存分配和阻塞调用，可安全放在任务上下文调用
 
 ### C 推理编译（RK3506）

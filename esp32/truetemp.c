@@ -22,25 +22,27 @@ static float saturation_vapor_pressure(float t)
     return 6.112f * expf(17.67f * t / (t + 243.5f));
 }
 
-/* 树的左子节点恒为 node+1（先序布局），只读 flash，无动态内存 */
+/* 树的左子节点恒为 node+1（先序布局），阈值/叶子值为 int16 量化，只读 flash */
 static float predict_trees(const truetemp_node_t *nodes, const uint16_t *roots,
-                           uint16_t num_trees, const float *x)
+                           uint16_t num_trees, const float *x,
+                           const float *feature_scale, float value_scale)
 {
-    float sum = 0.0f;
+    int32_t sum = 0;
 
     for (uint16_t t = 0; t < num_trees; t++) {
         uint16_t node = roots[t];
 
         while (!nodes[node].is_leaf) {
             const truetemp_node_t *n = &nodes[node];
-            node = (x[n->feature] <= n->threshold)
+            float threshold = n->threshold_q * feature_scale[n->feature];
+            node = (x[n->feature] <= threshold)
                        ? (uint16_t)(node + 1)
                        : n->right;
         }
-        sum += nodes[node].value;
+        sum += nodes[node].value_q;
     }
 
-    return sum;
+    return (float)sum * value_scale;
 }
 
 void truetemp_compensate(const truetemp_input_t *in, truetemp_output_t *out)
@@ -60,13 +62,15 @@ void truetemp_compensate(const truetemp_input_t *in, truetemp_output_t *out)
     x[TRUETEMP_F_C5_SOC_TEMP]          = in->c5_soc_temp;
 
     float t_comp = predict_trees(truetemp_temp_nodes, truetemp_temp_roots,
-                                 TRUETEMP_TEMP_NUM_TREES, x);
+                                 TRUETEMP_TEMP_NUM_TREES, x,
+                                 truetemp_feature_scale, TRUETEMP_TEMP_VALUE_SCALE);
 
     float e_raw = (in->raw_humidity / 100.0f) *
                   saturation_vapor_pressure(in->raw_temperature);
 
     float de = predict_trees(truetemp_de_nodes, truetemp_de_roots,
-                             TRUETEMP_DE_NUM_TREES, x);
+                             TRUETEMP_DE_NUM_TREES, x,
+                             truetemp_feature_scale, TRUETEMP_DE_VALUE_SCALE);
     float e_corr = e_raw + de;
 
     float rh_comp = TRUETEMP_CLAMP(

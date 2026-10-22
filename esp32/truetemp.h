@@ -31,8 +31,8 @@
  *   truetemp_output_t out;
  *   truetemp_compensate(&in, &out);
  *
- * 模型数据约 325 KiB，const 数组默认放在 flash，不占 RAM。
- * 单次推理约几百微秒（ESP32 240MHz 量级），1~10 秒调用一次即可。
+ * 模型数据默认 200 棵树/模型、约 87 KiB，const 数组放在 flash，不占 RAM。
+ * 单次推理约 2000 次节点访问，1~10 秒调用一次即可。
  */
 
 #ifndef TRUETEMP_H
