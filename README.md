@@ -154,3 +154,20 @@ arm-linux-gnueabihf-gcc -O3 -mcpu=cortex-a7 -mfpu=neon-vfpv4 \
 ```
 
 集成时调用 `predict_coupled()`（或 `predict_coupled_f()`）函数，删掉文件末尾的 `main()` 即可。
+
+## truetemp CLI 包（src/truetemp）
+
+仓库同时保留了基于 `src/truetemp` 的命令行实现，覆盖采集 → 数据集 → 训练 → 考试 → 预测的完整流程：
+
+```bash
+uv sync --python 3.12
+source .venv/bin/activate
+truetemp scan       # 扫描并选择 REF / DUT
+truetemp collect    # 采集会话目录（raw.jsonl / reference.csv / dut.csv / session.json）
+truetemp dataset build experiment.toml --output datasets/dut01
+truetemp train datasets/dut01 --output models/dut01
+truetemp evaluate datasets/dut01 --model models/dut01 --output reports/exam01 --exam
+truetemp predict data/new01/dut.csv --model models/dut01 --output predictions/new01.csv
+```
+
+更多说明见 [GUIDE.md](GUIDE.md)、[CLI.md](CLI.md)、[DUT_PROTOCOL.md](DUT_PROTOCOL.md)、[SYSTEM_DESIGN.md](SYSTEM_DESIGN.md)。

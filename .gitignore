@@ -1,8 +1,12 @@
 # Python / venv
 .venv/
 __pycache__/
+.pytest_cache/
 *.pyc
 *.egg-info/
+
+# 评估报告
+reports/
 
 # macOS
 .DS_Store

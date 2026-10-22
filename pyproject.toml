@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "truetemp"
+version = "0.1.0"
+description = "Local BLE temperature and humidity calibration"
+requires-python = ">=3.12"
+dependencies = [
+    "bleak>=3.0,<4",
+    "lightgbm>=4.6,<5",
+    "numpy>=2,<3",
+    "pandas>=2,<4",
+    "rich>=14,<15",
+    "tomlkit>=0.13,<1",
+]
+
+[project.scripts]
+truetemp = "truetemp.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8,<10"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

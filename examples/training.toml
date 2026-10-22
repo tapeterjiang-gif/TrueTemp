@@ -1,0 +1,15 @@
+[training]
+learning_rate = 0.03
+max_depth = 3
+min_child_samples = 20
+max_iterations = 1000
+early_stopping = 50
+num_leaves = [7, 15]
+reg_lambda = [5.0, 10.0]
+seed = 42
+num_threads = 2
+
+[features]
+# SoC 温度默认已禁用；其他字段只有确认不可靠时再禁用。
+# 禁用 CO2 温度会同时禁用其与 raw_temperature 的差值。
+disable = []
