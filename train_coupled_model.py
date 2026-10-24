@@ -13,6 +13,7 @@ Stage 2: LightGBM → Vapor Pressure Residual (δe = e_true - e_raw)
 import warnings
 warnings.filterwarnings('ignore')
 
+import glob
 import pandas as pd
 import numpy as np
 import lightgbm as lgb
@@ -47,9 +48,9 @@ def filter_outliers(df):
         reasons.append(f'raw_humidity <= 5%: {before - mask.sum()} rows')
     df = df[mask]
 
-    mask = df['raw_humidity'] < 50.0
+    mask = df['raw_humidity'] < 100.0
     if mask.sum() < len(df):
-        reasons.append(f'raw_humidity >= 50%: {len(df) - mask.sum()} rows')
+        reasons.append(f'raw_humidity >= 100%: {len(df) - mask.sum()} rows')
     df = df[mask]
 
     mask = df['humidity'] > 10.0
@@ -266,12 +267,10 @@ def export_model_for_deploy(model_temp, model_de, feature_cols):
 
 
 def main():
-    filepaths = [
-        'data/20261021_2106.xlsx',
-        'data/20261022_0950.xlsx',
-        'data/20261022_1648.xlsx',
-        'data/20261022_1745.xlsx',
-    ]
+    filepaths = sorted(glob.glob('data/*.xlsx'))
+    print(f'Data files ({len(filepaths)}):')
+    for fp in filepaths:
+        print(f'  {fp}')
 
     print('Loading and merging data...')
     df = load_and_merge(filepaths)

@@ -42,18 +42,18 @@ pip install pandas lightgbm joblib scikit-learn openpyxl
 python3 train_coupled_model.py
 ```
 
-无参数，固定读取 `data/` 下 5 个 Excel，产出到 `models/`：
+无参数，自动读取 `data/` 下所有 Excel，产出到 `models/`：
 `model_temperature_2stage.pkl`、`model_vapor_pressure.pkl`、
 `model_temperature.json`、`model_vapor_pressure.json`、`model_2stage_metadata.json`
 
 ### 评估（考试）
 
 ```bash
-# 用 .pkl 模型评估（依赖 lightgbm），参数为测试文件
-python3 exam.py data/50D6_Data_241859.xlsx
+# 用 JSON 树模型评估（不依赖 lightgbm），参数为测试文件；不传则用 data/ 下最新文件
+python3 exam_model.py data/20261023_1948.xlsx
 
-# 用 JSON 树模型评估（不依赖 lightgbm），默认考 data/50D6_Data_241702.xlsx
-python3 exam_model.py
+# 模拟 ESP32 部署模型（前 200 棵树）
+python3 exam_model.py data/20261023_1948.xlsx --trees 200
 ```
 
 ### Python 推理
