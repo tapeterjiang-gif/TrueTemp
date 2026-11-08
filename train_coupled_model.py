@@ -235,7 +235,7 @@ def demo_predictions(model_temp, model_de, X, feature_cols, y_true_temp=None, y_
 
 
 def export_model_for_deploy(model_temp, model_de, feature_cols):
-    """导出为嵌套树 JSON 格式（供 infer_coupled 使用）"""
+    """导出为嵌套树 JSON 格式（供 exam_model.py / gen_c_model.py 使用）"""
     d_temp = model_temp.booster_.dump_model()
     d_de = model_de.booster_.dump_model()
 

@@ -11,17 +11,15 @@
 ## 目录结构
 
 ```
-data/                      训练/测试数据（5 个 Excel，REF-50D6 + 2D58 两个 sheet）
-models/                    模型文件（.pkl / .json / .h）
+data/                      训练/测试数据（xlsx，REF + DUT 两个 sheet）
+models/                    模型文件（.pkl / .json）
 esp32/                     ESP32 集成（truetemp.h / truetemp.c / 生成的数据头文件）
+linux/                     Rockchip 集成（PX30 / RK3506：C 接口 + Python 推理）
 train_coupled_model.py     两阶段训练
 exam.py                    用 .pkl 模型评估（依赖 lightgbm）
 exam_model.py              用 JSON 树模型评估（不依赖 lightgbm）
-infer_coupled.py           纯标准库 Python 推理（RK PX30）
 collect_data.py            BLE 采集 REF/DUT 广播并保存 xlsx
 gen_c_model.py             生成 C 头文件（零依赖嵌入式部署）
-infer_coupled_c.c          C 推理 double 版（RK3506）
-infer_coupled_c_f.c        C 推理 float/NEON 版（RK3506）
 ```
 
 ## 命令
@@ -54,17 +52,6 @@ python3 exam_model.py data/20261023_1948.xlsx
 
 # 模拟 ESP32 部署模型（前 200 棵树）
 python3 exam_model.py data/20261023_1948.xlsx --trees 200
-```
-
-### Python 推理
-
-```bash
-# 默认示例参数推理
-python3 infer_coupled.py
-
-# 传入 10 个参数: 原始温度, 原始湿度, soc温度(毫°C), co2温度(毫°C),
-# 运行时长(s), 亮屏时长(s), cpu负载(milli), 环境光(lux), 充电电流(mA), 充电电压(mV)
-python3 infer_coupled.py 33.4 37.7 526 439 3171 2307 139 116 156 3937
 ```
 
 ### 数据采集
@@ -142,21 +129,71 @@ truetemp_compensate(&in, &out);
 - 全程 float 运算（ESP32 无硬件 double），单次推理约 2000 次节点访问，1~10 秒调用一次即可
 - 调度器/中断里没有动态内存分配和阻塞调用，可安全放在任务上下文调用
 
-### C 推理编译（RK3506）
+### Linux 集成（Rockchip PX30 / RK3506）
+
+Linux 版本与 ESP32 使用同一套 API 和输入单位，区别是模型保留全部 500 棵树、阈值与叶子值为 float，不做 int16 量化。
+
+重新训练后生成 Linux 模型：
 
 ```bash
-# 本机测试（double 版）
-gcc -O2 -o infer_coupled_c infer_coupled_c.c -lm
-./infer_coupled_c
-
-# RK3506 交叉编译（Cortex-A7，float/NEON 版，推荐）
-arm-linux-gnueabihf-gcc -O3 -mcpu=cortex-a7 -mfpu=neon-vfpv4 \
-    -mfloat-abi=hard -ffast-math -funroll-loops \
-    -o infer_coupled_c_f infer_coupled_c_f.c -lm
-./infer_coupled_c_f
+python3 gen_c_model.py --linux               # 500 棵树/模型，约 332 KiB .rodata
+python3 gen_c_model.py --linux --trees 200   # 限制体积，约 133 KiB
 ```
 
-集成时调用 `predict_coupled()`（或 `predict_coupled_f()`）函数，删掉文件末尾的 `main()` 即可。
+`linux/` 目录内容：
+
+```
+linux/truetemp.h             对外接口（与 esp32/truetemp.h 相同的 API）
+linux/truetemp.c             float 推理实现，只依赖 libm
+linux/truetemp_model_data.h  由 --linux 生成，不要手改
+linux/truetemp_infer.c       命令行示例（11 个参数或 stdin）
+linux/infer_truetemp.py      纯标准库 Python 推理（读取 models/*.json）
+linux/Makefile               本机与交叉编译入口
+```
+
+本机编译与验证：
+
+```bash
+cd linux
+make
+./truetemp_infer 26.1 25.3 38.2 32.0 7200 80 0 11 3 0 30.9
+# temperature=... humidity=... dew_point=... absolute_humidity=...
+```
+
+交叉编译（`CC` 前缀按实际 Buildroot / Linaro SDK 替换）：
+
+```bash
+# PX30（Cortex-A35，aarch64）
+make clean
+make CC=aarch64-linux-gnu-gcc CFLAGS="-O3 -std=c11 -mcpu=cortex-a35"
+
+# RK3506（Cortex-A7，armhf）
+make clean
+make CC=arm-linux-gnueabihf-gcc \
+     CFLAGS="-O3 -std=c11 -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -ffast-math"
+```
+
+集成到应用时，把 `truetemp.h`、`truetemp.c`、`truetemp_model_data.h` 加入工程，链接 `-lm`，调用方式与 ESP32 完全相同：
+
+```c
+truetemp_input_t in = { /* 11 个字段，单位与训练数据一致 */ };
+truetemp_output_t out;
+truetemp_compensate(&in, &out);
+```
+
+设备上已有 Python 3 时，也可以直接用标准库推理（无需 numpy / lightgbm）：
+
+```bash
+python3 linux/infer_truetemp.py 26.1 25.3 38.2 32.0 7200 80 0 11 3 0 30.9
+python3 linux/infer_truetemp.py --trees 200 26.1 25.3 38.2 32.0 7200 80 0 11 3 0 30.9
+```
+
+说明：
+
+- 模型数据约 28,316 个节点、**332 KiB** `.rodata`；本机验证二进制约 372 KB
+- 全流程 float 运算，Cortex-A7 / Cortex-A35 均可用 NEON
+- 重新训练后必须重新执行 `--linux`（或 `make model`），否则头文件与 JSON 模型不一致
+- 不要把 ESP32 的 `truetemp_model_data.h` 与 Linux 版混用：前者是 int16 量化格式，后者是 float 格式
 
 ## truetemp CLI 包（src/truetemp）
 
