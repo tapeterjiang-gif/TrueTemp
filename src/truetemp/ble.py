@@ -53,7 +53,7 @@ def table(devices, reference, full=False, dut=None):
     for i, device in enumerate(devices.values(), 1):
         reading = device.reading
         stale = "（过期）" if time.monotonic() - device.seen > 10 else ""
-        row = [str(i), device.name, ("SHT4x REF" if device.role == "reference" else "DUT v3") if reading else "未知/无效",
+        row = [str(i), device.name, ("SHT4x REF" if device.role == "reference" else f"DUT v{reading.version}") if reading else "未知/无效",
                f"{device.rssi} dBm", f"{reading.temperature:.1f} °C{stale}" if reading else "—",
                f"{reading.humidity:.1f} %RH" if reading else "—",
                "标准表" if device.address.casefold() == (reference or "").casefold() else ("DUT" if device.address.casefold() == (dut or "").casefold() else "—")]
@@ -154,7 +154,8 @@ class Recorder:
         if self.pending is not None:
             row = dict(self.pending)
             for field in self.decimals:
-                row[field] = f"{row[field]:.1f}"
+                if row[field] is not None:
+                    row[field] = f"{row[field]:.1f}"
             self.writer.writerow(row)
             self.file.flush()
             self.count += 1
@@ -213,14 +214,7 @@ async def collect(output, reference, interval, note, console, stop=None, scanner
                         values = "—" if reading is None else f"{reading.temperature:.1f} °C / {reading.humidity:.1f} %RH"
                         details = ""
                         if reading is not None and channel.role == "dut":
-                            details = (f" · Wi-Fi {reading.c5_soc_temp:.1f}°C"
-                                       f" · SoC {reading.temperature_soc:.1f}°C"
-                                       f" · CO₂ {reading.temperature_co2:.1f}°C"
-                                       f" · 运行 {reading.time_uptime}s"
-                                       f" · 亮 {reading.screen_brightness}"
-                                       f" · 亮屏 {reading.screen_on_duration_s}s"
-                                       f" · 充 {reading.power_charge_ma:+d}mA"
-                                       f" · 负载 P4 {reading.cpu_load_10s}%/C5 {reading.wifi_load_10s}%")
+                            details = reading.status_details()
                         console.print(f"{channel.role.upper()} · 样本 {channel.count} · 报文 {channel.packets} · 无效 {channel.invalid} · {health} · {values}{details}", markup=False)
                 if callback_errors:
                     raise callback_errors[0]

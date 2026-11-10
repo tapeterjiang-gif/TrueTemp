@@ -16,7 +16,7 @@ BLE 实时采集 REF（SHT4x 参考表）与 DUT（Qingping 设备）广播，�
       DUT sheet:  received_at, raw_temperature, raw_humidity, temperature_soc,
                   temperature_co2, time_uptime, screen_brightness,
                   screen_on_duration_s, cpu_load_10s, wifi_load_10s,
-                  power_charge_ma, c5_soc_temp
+                  power_charge_ma, c5_soc_temp, version, wifi_tx_bytes, ambient_lux, power_charge_mv
 依赖:
     bleak（BLE 扫描）; xlsx 写入使用 Python 标准库
 """
@@ -32,6 +32,8 @@ import zipfile
 from dataclasses import dataclass
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+
+from src.truetemp.protocol import decode_dut
 
 CST = timezone(timedelta(hours=8))
 
@@ -72,54 +74,7 @@ def decode_ref(data: bytes) -> Reading:
     return Reading(gadget_id, raw_t, raw_h, temperature, humidity)
 
 
-@dataclass
-class DutReading:
-    version: int
-    flags: int
-    raw_temperature: float
-    raw_humidity: float
-    temperature_soc: float
-    temperature_co2: float
-    time_uptime: int
-    screen_brightness: int
-    screen_on_duration_s: int
-    cpu_load_10s: int
-    wifi_load_10s: int
-    power_charge_ma: int
-    c5_soc_temp: float
 
-    @property
-    def temperature(self):
-        return self.raw_temperature
-
-    @property
-    def humidity(self):
-        return self.raw_humidity
-
-
-def decode_dut(data: bytes) -> DutReading:
-    """DUT 遥测协议 v3，21 字节（Bleak 已剥离 2 字节公司 ID），全部小端。"""
-    if len(data) != 21:
-        raise ValueError(f'DUT v3 载荷应为 21 字节，实际为 {len(data)} 字节')
-    (version, flags, raw_temperature, raw_humidity, temperature_soc, temperature_co2,
-     time_uptime, screen_brightness, screen_on_duration_s, cpu_load_10s, wifi_load_10s,
-     power_charge_ma, c5_soc_temp) = struct.unpack('<BBhhhhHBHBBhh', data)
-    if version != 3:
-        raise ValueError(f'不支持的 DUT 协议版本：{version}')
-    reading = DutReading(version, flags, raw_temperature / 10, raw_humidity / 10,
-                         temperature_soc / 10, temperature_co2 / 10, time_uptime,
-                         screen_brightness, screen_on_duration_s, cpu_load_10s,
-                         wifi_load_10s, power_charge_ma, c5_soc_temp / 10)
-    if not 0 <= reading.raw_humidity <= 100:
-        raise ValueError('DUT 相对湿度超出 0～100%RH')
-    if reading.time_uptime > 7200 or reading.screen_on_duration_s > 3600:
-        raise ValueError('DUT 计时字段超过协议上限')
-    if reading.cpu_load_10s > 100 or reading.wifi_load_10s > 100:
-        raise ValueError('DUT 负载超过 100%')
-    return reading
-
-
-# ---------------------------------------------------------------- xlsx 写入
 def _col_letter(i):
     s = ''
     while i >= 0:
@@ -134,6 +89,8 @@ def _sheet_xml(header, rows):
 
     def cell(r, c, v):
         ref = _col_letter(c) + str(r)
+        if v is None:
+            return f'<c r="{ref}"/>'
         if isinstance(v, (int, float)):
             return f'<c r="{ref}"><v>{v!r}</v></c>'
         return f'<c r="{ref}" t="inlineStr"><is><t>{v}</t></is></c>'
@@ -146,7 +103,7 @@ def _sheet_xml(header, rows):
 
 
 def write_xlsx(path, ref_rows, dut_rows):
-    """ref_rows: [[ts, temp, hum], ...]; dut_rows: [[ts, 11 字段], ...]"""
+    """ref_rows: [[ts, temp, hum], ...]; dut_rows: [[ts, DUT 字段...], ...]"""
     ct = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
           '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
           '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
@@ -180,14 +137,11 @@ def write_xlsx(path, ref_rows, dut_rows):
                    _sheet_xml(['received_at', 'raw_temperature', 'raw_humidity', 'temperature_soc',
                                'temperature_co2', 'time_uptime', 'screen_brightness',
                                'screen_on_duration_s', 'cpu_load_10s', 'wifi_load_10s',
-                               'power_charge_ma', 'c5_soc_temp'], dut_rows))
+                               'power_charge_ma', 'c5_soc_temp', 'version', 'wifi_tx_bytes',
+                               'ambient_lux', 'power_charge_mv'], dut_rows))
 
 
 # ---------------------------------------------------------------- 采集器
-DUT_DECIMAL_FIELDS = ('raw_temperature', 'raw_humidity', 'temperature_soc',
-                      'temperature_co2', 'c5_soc_temp')
-
-
 class Recorder:
     """接收并解码广播，按采样间隔输出状态行，样本缓存在 pending。"""
 
@@ -229,7 +183,9 @@ class Recorder:
             row = [local_now(), round(r.raw_temperature, 1), round(r.raw_humidity, 1),
                    round(r.temperature_soc, 1), round(r.temperature_co2, 1),
                    r.time_uptime, r.screen_brightness, r.screen_on_duration_s,
-                   r.cpu_load_10s, r.wifi_load_10s, r.power_charge_ma, round(r.c5_soc_temp, 1)]
+                   r.cpu_load_10s, r.wifi_load_10s, r.power_charge_ma,
+                   None if r.c5_soc_temp is None else round(r.c5_soc_temp, 1), r.version,
+                   r.wifi_tx_bytes, r.ambient_lux, r.power_charge_mv]
         else:
             row = [local_now(), round(r.temperature, 1), round(r.humidity, 1)]
         self.samples.append(row)
@@ -243,14 +199,7 @@ class Recorder:
         values = '—' if r is None else f'{r.temperature:.1f} °C / {r.humidity:.1f} %RH'
         details = ''
         if r is not None and self.role == 'dut':
-            details = (f' · Wi-Fi {r.c5_soc_temp:.1f}°C'
-                       f' · SoC {r.temperature_soc:.1f}°C'
-                       f' · CO₂ {r.temperature_co2:.1f}°C'
-                       f' · 运行 {r.time_uptime}s'
-                       f' · 亮 {r.screen_brightness}'
-                       f' · 亮屏 {r.screen_on_duration_s}s'
-                       f' · 充 {r.power_charge_ma:+d}mA'
-                       f' · 负载 P4 {r.cpu_load_10s}%/C5 {r.wifi_load_10s}%')
+            details = r.status_details()
         role = 'REFERENCE' if self.role == 'reference' else 'DUT'
         return (f'{role} · 样本 {self.count} · 报文 {self.packets}'
                 f' · 无效 {self.invalid} · {health} · {values}{details}')

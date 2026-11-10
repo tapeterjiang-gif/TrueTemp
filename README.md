@@ -131,7 +131,27 @@ truetemp_compensate(&in, &out);
 
 ### Linux 集成（Rockchip PX30 / RK3506）
 
-Linux 版本与 ESP32 使用同一套 API 和输入单位，区别是模型保留全部 500 棵树、阈值与叶子值为 float，不做 int16 量化。
+Rockchip Linux 推理使用 float 树模型。默认目标使用既有 DUT v3 模型。
+
+#### Snow2S v4
+
+先用 `./collect` 同时采集参考表与 Snow2S v4 DUT。训练读取同一 XLSX 中时间戳一致的
+REF/DUT 样本，只选 `version=4` 的 DUT 行。背光按原始 0～1000 输入，Wi-Fi 特征为
+`wifi_tx_bytes`（Byte/s）。C5 温度和旧 Wi-Fi 负载百分比不属于此模型。
+
+```bash
+python3 train_coupled_model.py --snow2s data/你的采集文件.xlsx
+python3 linux/infer_truetemp.py --snow2s 26.1 25.3 38.2 32.0 7200 1000 120 11 1800 0
+make -C linux snow2s
+```
+
+训练结果默认写入 `models/snow2s/`，元数据包含各特征的实测范围。Python 与 C 按相同顺序
+读取 10 个 v4 字段。上例中 `1000` 是背光，`1800` 是 Wi-Fi 发送速率。
+C 目标从这对 JSON 生成 `truetemp_snow2s_model_data.h` 并产出 `truetemp_infer_snow2s`。
+直接集成 C 时，编译库和调用方都定义 `TRUETEMP_SNOW2S`，调用 `truetemp_compensate_snow2s`。
+训练与导出需要先提供实际 v4 数据，已有 v3 模型不能作为 v4 模型加载。
+
+#### 既有 v3
 
 重新训练后生成 Linux 模型：
 
@@ -143,7 +163,7 @@ python3 gen_c_model.py --linux --trees 200   # 限制体积，约 133 KiB
 `linux/` 目录内容：
 
 ```
-linux/truetemp.h             对外接口（与 esp32/truetemp.h 相同的 API）
+linux/truetemp.h             Rockchip Linux 对外接口
 linux/truetemp.c             float 推理实现，只依赖 libm
 linux/truetemp_model_data.h  由 --linux 生成，不要手改
 linux/truetemp_infer.c       命令行示例（11 个参数或 stdin）
@@ -173,7 +193,7 @@ make CC=arm-linux-gnueabihf-gcc \
      CFLAGS="-O3 -std=c11 -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -ffast-math"
 ```
 
-集成到应用时，把 `truetemp.h`、`truetemp.c`、`truetemp_model_data.h` 加入工程，链接 `-lm`，调用方式与 ESP32 完全相同：
+集成 v3 模型时，把 `truetemp.h`、`truetemp.c`、`truetemp_model_data.h` 加入工程并链接 `-lm`。
 
 ```c
 truetemp_input_t in = { /* 11 个字段，单位与训练数据一致 */ };

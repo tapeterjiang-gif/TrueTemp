@@ -26,3 +26,27 @@ CSV 包含 `received_at`、`device_id`、`rssi`，以及表中 version 至 c5_so
 SoC 温度（P4 的 temperature_soc 与 C5 的 c5_soc_temp）数据源暂无时为 0。其他 telemetry 镜像尚未到达时也可为 0；协议没有有效性位，程序保留原值，不把所有 0 自动认作缺失或正常测量。flags 原样保存，不据此过滤设备。
 
 拒绝长度或版本不符、湿度超出 0～100%RH、计时超过上限、负载超过 100% 的报文，并在所选设备原始日志中记录原因。company_id 不符的设备根本不会被当作 DUT 接收。负温度和负电流允许通过。
+
+## Snow2S 遥测 v4
+
+厂商 ID 同为 `0xDFDF`，Bleak 去掉厂商 ID 后为 35 字节。所有多字节字段小端。
+
+| 载荷偏移（不含厂商 ID） | 字段 | 类型 / 单位 |
+| --- | --- | --- |
+| 0–1 | version, flags | 各 uint8。version 为 4。flags bit7 表示光感有效 |
+| 2–3 | 广播序号 | uint16 |
+| 4–11 | 原始温湿度、SoC 温度、CO₂ 模块温度 | 各 int16，十分位 |
+| 12–13 | 设备运行时长 | uint16 秒，最大 7200 |
+| 14–15 | screen_brightness | uint16，原始背光 0～1000 |
+| 16–17 | 持续亮屏时长 | uint16 秒，最大 7200 |
+| 18–19 | CPU 负载 | uint16，十分位百分比 |
+| 20–21 | ambient_lux | uint16，lux |
+| 22 | Wi-Fi RSSI | int8，dBm |
+| 23–24 | wifi_tx_bytes | uint16，Byte/s |
+| 25–28 | 电池侧充电电流与电压 | 各 uint16，mA / mV |
+| 29–34 | BLE MAC | 6 字节 |
+
+`./collect` 与包内采集命令均接收 v3 和 v4。v4 采集记录保留协议版本和原始背光，
+无效 lux 及 v4 没有提供的 Wi-Fi 负载、C5 温度留空。发送速率单独记录。
+Rockchip Linux 的 v4 训练及推理入口见 [Linux 集成](README.md#snow2s-v4)。
+`src/truetemp` 的既有校准模型入口使用 v3 数据。

@@ -17,6 +17,7 @@ truetemp.toml
 # Linux 构建产物
 linux/*.o
 linux/truetemp_infer
+linux/truetemp_infer_snow2s
 
 # HTML 预览/分享缓存
 .screenshots/

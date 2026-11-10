@@ -11,7 +11,14 @@
 #include <math.h>
 
 #include "truetemp.h"
+#ifdef TRUETEMP_SNOW2S
+#include "truetemp_snow2s_model_data.h"
+#if TRUETEMP_MODEL_PROTOCOL_VERSION != 4
+#error "Snow2S inference requires a DUT v4 model"
+#endif
+#else
 #include "truetemp_model_data.h"
+#endif
 
 #define TRUETEMP_CLAMP(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
 
@@ -41,7 +48,11 @@ static float predict_trees(const truetemp_node_t *nodes, const uint16_t *roots,
     return sum;
 }
 
+#ifdef TRUETEMP_SNOW2S
+void truetemp_compensate_snow2s(const truetemp_input_t *in, truetemp_output_t *out)
+#else
 void truetemp_compensate(const truetemp_input_t *in, truetemp_output_t *out)
+#endif
 {
     float x[TRUETEMP_FEATURE_COUNT];
 
@@ -53,9 +64,13 @@ void truetemp_compensate(const truetemp_input_t *in, truetemp_output_t *out)
     x[TRUETEMP_F_SCREEN_BRIGHTNESS]    = in->screen_brightness;
     x[TRUETEMP_F_SCREEN_ON_DURATION_S] = in->screen_on_duration_s;
     x[TRUETEMP_F_CPU_LOAD_10S]         = in->cpu_load_10s;
-    x[TRUETEMP_F_WIFI_LOAD_10S]        = in->wifi_load_10s;
     x[TRUETEMP_F_POWER_CHARGE_MA]      = in->power_charge_ma;
+#ifdef TRUETEMP_SNOW2S
+    x[TRUETEMP_F_WIFI_TX_BYTES]        = in->wifi_tx_bytes;
+#else
+    x[TRUETEMP_F_WIFI_LOAD_10S]        = in->wifi_load_10s;
     x[TRUETEMP_F_C5_SOC_TEMP]          = in->c5_soc_temp;
+#endif
 
     float t_comp = predict_trees(truetemp_temp_nodes, truetemp_temp_roots,
                                  TRUETEMP_TEMP_NUM_TREES, x);

@@ -21,13 +21,22 @@ FEATURES = [
     'time_uptime', 'screen_brightness', 'screen_on_duration_s', 'cpu_load_10s',
     'wifi_load_10s', 'power_charge_ma', 'c5_soc_temp',
 ]
+SNOW2S_FEATURES = [
+    'raw_temperature', 'raw_humidity', 'temperature_soc', 'temperature_co2',
+    'time_uptime', 'screen_brightness', 'screen_on_duration_s', 'cpu_load_10s',
+    'wifi_tx_bytes', 'power_charge_ma',
+]
 
 
-def load_trees(path, max_trees):
+def load_trees(path, max_trees, snow2s=False):
     with open(path, 'r') as f:
         model = json.load(f)
-    if model['features'] != FEATURES:
-        raise SystemExit(f'{path}: feature order does not match the expected 11 inputs')
+    version = 4 if snow2s else 3
+    features = SNOW2S_FEATURES if snow2s else FEATURES
+    if model.get('protocol_version', 3) != version or model['features'] != features:
+        raise ValueError(f'{path}: model protocol or feature order does not match DUT v{version}')
+    if not model['trees'] or max_trees <= 0:
+        raise ValueError(f'{path}: no trees selected')
     return model['trees'][:max_trees]
 
 
@@ -71,9 +80,9 @@ def main():
 
     parser = argparse.ArgumentParser(description='TrueTemp Linux inference (stdlib only)')
     parser.add_argument('values', nargs='*', type=float,
-                        help='11 inputs: raw_t rh soc_t co2_t uptime brightness '
-                             'screen_on cpu wifi charge_ma c5_t')
-    parser.add_argument('--model-dir', default=default_models,
+                        help='inputs in model feature order (see README)')
+    parser.add_argument('--snow2s', action='store_true', help='use the Snow2S DUT v4 Rockchip model')
+    parser.add_argument('--model-dir',
                         help='directory containing model_temperature.json / model_vapor_pressure.json')
     parser.add_argument('--trees', type=int, default=500,
                         help='use only the first N trees per model (default: 500)')
@@ -85,11 +94,19 @@ def main():
         line = sys.stdin.readline()
         values = [float(v) for v in line.split()]
 
-    if len(values) != len(FEATURES):
-        parser.error(f'expected {len(FEATURES)} values, got {len(values)}')
+    features = SNOW2S_FEATURES if args.snow2s else FEATURES
+    if len(values) != len(features):
+        parser.error(f'expected {len(features)} values: {", ".join(features)}')
+    if args.snow2s and (not all(map(math.isfinite, values)) or not 0 <= values[5] <= 1000 or
+                        not 0 <= values[8] <= 65535):
+        parser.error('Snow2S expects finite inputs, brightness 0..1000 and Wi-Fi TX 0..65535 B/s')
 
-    temp_trees = load_trees(os.path.join(args.model_dir, 'model_temperature.json'), args.trees)
-    de_trees = load_trees(os.path.join(args.model_dir, 'model_vapor_pressure.json'), args.trees)
+    model_dir = args.model_dir or (os.path.join(default_models, 'snow2s') if args.snow2s else default_models)
+    try:
+        temp_trees = load_trees(os.path.join(model_dir, 'model_temperature.json'), args.trees, args.snow2s)
+        de_trees = load_trees(os.path.join(model_dir, 'model_vapor_pressure.json'), args.trees, args.snow2s)
+    except (OSError, ValueError) as error:
+        parser.error(str(error))
 
     t_comp, rh_comp, dew, ah = compensate(values, temp_trees, de_trees)
     print(f'temperature={t_comp:.4f} humidity={rh_comp:.4f} '

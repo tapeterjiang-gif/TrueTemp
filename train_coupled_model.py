@@ -13,30 +13,37 @@ Stage 2: LightGBM → Vapor Pressure Residual (δe = e_true - e_raw)
 import warnings
 warnings.filterwarnings('ignore')
 
-import glob
+import argparse
 import pandas as pd
 import numpy as np
-import lightgbm as lgb
-from sklearn.model_selection import TimeSeriesSplit
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-import joblib
 import json
 from datetime import datetime
+from pathlib import Path
+from linux.infer_truetemp import FEATURES, SNOW2S_FEATURES
 
 
-def load_and_merge(filepaths):
+def select_dut_rows(dut, snow2s):
+    if 'version' in dut:
+        return dut.loc[pd.to_numeric(dut['version'], errors='raise') == (4 if snow2s else 3)].copy()
+    return dut.iloc[:0].copy() if snow2s else dut
+
+
+def load_and_merge(filepaths, snow2s=False):
     dfs = []
     for fp in filepaths:
         ref = pd.read_excel(fp, sheet_name='REF')
-        dut = pd.read_excel(fp, sheet_name='DUT')
+        dut = select_dut_rows(pd.read_excel(fp, sheet_name='DUT'), snow2s)
+        if dut.empty:
+            continue
         ref['ts'] = pd.to_datetime(ref['timestamp'])
         dut['ts'] = pd.to_datetime(dut['received_at'])
-        m = pd.merge(ref, dut, on='ts', how='inner')
+        m = pd.merge(ref, dut, on='ts', how='inner', validate='one_to_one' if snow2s else None)
         dfs.append(m)
+    if not dfs or not any(not frame.empty for frame in dfs):
+        raise ValueError('没有可用的 REF/DUT v4 配对样本' if snow2s else '没有可用的 REF/DUT v3 配对样本')
     merged = pd.concat(dfs, ignore_index=True)
     merged = merged.sort_values('ts').reset_index(drop=True)
-    merged = filter_outliers(merged)
-    return merged
+    return merged if snow2s else filter_outliers(merged)
 
 
 def filter_outliers(df):
@@ -80,16 +87,22 @@ def filter_outliers(df):
     return df.copy()
 
 
-def prepare_features(df):
-    # 新数据结构 (20260912_2328.xlsx): DUT 全部可用列, temperature_soc/co2 单位 °C
-    feature_cols = [
-        'raw_temperature', 'raw_humidity', 'temperature_soc', 'temperature_co2',
-        'time_uptime', 'screen_brightness', 'screen_on_duration_s', 'cpu_load_10s',
-        'wifi_load_10s', 'power_charge_ma', 'c5_soc_temp',
-    ]
+def prepare_features(df, snow2s=False):
+    feature_cols = SNOW2S_FEATURES if snow2s else FEATURES
     X = df[feature_cols].copy()
     y_temp = df['temperature'].copy()
     y_humid = df['humidity'].copy()
+    if snow2s:
+        X = X.apply(pd.to_numeric, errors='raise')
+        y_temp = pd.to_numeric(y_temp, errors='raise')
+        y_humid = pd.to_numeric(y_humid, errors='raise')
+        if not np.isfinite(X.to_numpy()).all() or not np.isfinite(y_temp).all():
+            raise ValueError('Snow2S v4 的必需特征和参考温度必须为有限数值')
+        for values, limit in ((y_humid, 100), (X.raw_humidity, 100), (X.screen_brightness, 1000),
+                              (X.time_uptime, 7200), (X.screen_on_duration_s, 7200), (X.cpu_load_10s, 100),
+                              (X.wifi_tx_bytes, 65535), (X.power_charge_ma, 65535)):
+            if not values.between(0, limit).all():
+                raise ValueError(f'{values.name} 超出 Snow2S v4 范围 0..{limit}')
     return X, y_temp, y_humid, feature_cols
 
 
@@ -115,6 +128,9 @@ def lgb_params():
 
 
 def train_with_cv(X, y, target_name):
+    import lightgbm as lgb
+    from sklearn.model_selection import TimeSeriesSplit
+    from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
     tscv = TimeSeriesSplit(n_splits=3)
     params = lgb_params()
     cv_scores = []
@@ -156,6 +172,7 @@ def saturation_vapor_pressure(T):
 
 
 def evaluate_two_stage(model_temp, model_de, X, y_true_temp, y_true_humid, feature_cols):
+    from sklearn.metrics import r2_score
     T_comp = model_temp.predict(X)
 
     raw_temp_idx = feature_cols.index('raw_temperature')
@@ -234,7 +251,7 @@ def demo_predictions(model_temp, model_de, X, feature_cols, y_true_temp=None, y_
               f'{AH[i]:7.3f} {e_cor[i]:6.2f}')
 
 
-def export_model_for_deploy(model_temp, model_de, feature_cols):
+def export_model_for_deploy(model_temp, model_de, output, snow2s):
     """导出为嵌套树 JSON 格式（供 exam_model.py / gen_c_model.py 使用）"""
     d_temp = model_temp.booster_.dump_model()
     d_de = model_de.booster_.dump_model()
@@ -254,10 +271,12 @@ def export_model_for_deploy(model_temp, model_de, feature_cols):
         'features': d_de['feature_names'],
         'trees': [compact_tree(ti['tree_structure']) for ti in d_de['tree_info']],
     }
+    if snow2s:
+        temp_json['protocol_version'] = de_json['protocol_version'] = 4
 
-    with open('models/model_temperature.json', 'w') as f:
+    with (output / 'model_temperature.json').open('w') as f:
         json.dump(temp_json, f, separators=(',', ':'), ensure_ascii=False)
-    with open('models/model_vapor_pressure.json', 'w') as f:
+    with (output / 'model_vapor_pressure.json').open('w') as f:
         json.dump(de_json, f, separators=(',', ':'), ensure_ascii=False)
 
     print(f'\n  Exported: model_temperature.json '
@@ -267,16 +286,30 @@ def export_model_for_deploy(model_temp, model_de, feature_cols):
 
 
 def main():
-    filepaths = sorted(glob.glob('data/*.xlsx'))
+    parser = argparse.ArgumentParser(description='训练温湿度两阶段模型')
+    parser.add_argument('--snow2s', action='store_true', help='训练 Rockchip Linux 的 Snow2S DUT v4 模型')
+    parser.add_argument('--output-dir', type=Path)
+    parser.add_argument('files', type=Path, nargs='*', help='TrueTemp 采集的 REF/DUT XLSX 文件')
+    args = parser.parse_args()
+    if args.snow2s and not args.files:
+        parser.error('--snow2s 需要显式指定包含 DUT v4 数据的 XLSX 文件')
+    output = args.output_dir or Path('models/snow2s' if args.snow2s else 'models')
+    if args.snow2s and output.resolve() == Path(__file__).resolve().parent / 'models':
+        parser.error('Snow2S 模型必须写入独立目录')
+    filepaths = args.files or sorted(Path('data').glob('*.xlsx'))
     print(f'Data files ({len(filepaths)}):')
     for fp in filepaths:
         print(f'  {fp}')
 
     print('Loading and merging data...')
-    df = load_and_merge(filepaths)
+    try:
+        df = load_and_merge(filepaths, args.snow2s)
+        X, y_temp, y_humid, features = prepare_features(df, args.snow2s)
+    except (OSError, ValueError, KeyError) as error:
+        parser.error(str(error))
     print(f'  Merged samples: {len(df)}')
 
-    X, y_temp, y_humid, features = prepare_features(df)
+    import joblib
 
     T_raw = X['raw_temperature'].values
     RH_raw = X['raw_humidity'].values
@@ -296,12 +329,11 @@ def main():
     print(f'\n{"="*60}')
     print('Saving models...')
     print(f'{"="*60}')
-    joblib.dump(model_temp, 'models/model_temperature_2stage.pkl')
-    joblib.dump(model_de, 'models/model_vapor_pressure.pkl')
-    print('  Saved: models/model_temperature_2stage.pkl')
-    print('  Saved: models/model_vapor_pressure.pkl')
+    output.mkdir(parents=True, exist_ok=True)
+    joblib.dump(model_temp, output / 'model_temperature_2stage.pkl')
+    joblib.dump(model_de, output / 'model_vapor_pressure.pkl')
 
-    export_model_for_deploy(model_temp, model_de, features)
+    export_model_for_deploy(model_temp, model_de, output, args.snow2s)
 
     metadata = {
         'created_at': datetime.now().isoformat(),
@@ -316,9 +348,12 @@ def main():
         },
         'combined': eval_result,
     }
-    with open('models/model_2stage_metadata.json', 'w') as f:
+    if args.snow2s:
+        metadata.update(protocol_version=4, input_ranges={key: [float(X[key].min()), float(X[key].max())]
+                                                         for key in features})
+    with (output / 'model_2stage_metadata.json').open('w') as f:
         json.dump(metadata, f, indent=2, ensure_ascii=False)
-    print('  Saved: model_2stage_metadata.json')
+    print(f'  Models: {output.resolve()}')
 
     print('\nDone.')
 
