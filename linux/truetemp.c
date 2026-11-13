@@ -12,6 +12,7 @@
 
 #include "truetemp.h"
 #ifdef TRUETEMP_SNOW2S
+#define TRUETEMP_RUNTIME_DELTA_GATE_VERSION 1
 #include "truetemp_snow2s_model_data.h"
 #if TRUETEMP_MODEL_PROTOCOL_VERSION != 4
 #error "Snow2S inference requires a DUT v4 model"
@@ -72,8 +73,29 @@ void truetemp_compensate(const truetemp_input_t *in, truetemp_output_t *out)
     x[TRUETEMP_F_C5_SOC_TEMP]          = in->c5_soc_temp;
 #endif
 
-    float t_comp = predict_trees(truetemp_temp_nodes, truetemp_temp_roots,
-                                 TRUETEMP_TEMP_NUM_TREES, x);
+    float t_comp;
+#ifdef TRUETEMP_HAS_DELTA_GATE
+    for (unsigned i = 0; i < TRUETEMP_FEATURE_COUNT; ++i) {
+        if (!isfinite(x[i])) {
+            out->temperature = out->humidity = out->dew_point = out->absolute_humidity = NAN;
+            return;
+        }
+    }
+    if (in->raw_temperature > TRUETEMP_RAW_TEMPERATURE_MAX) {
+        /* Extra trees use the common ten-field layout, but never split on raw temperature. */
+        float delta = predict_trees(truetemp_delta_nodes, truetemp_delta_roots,
+                                    TRUETEMP_DELTA_NUM_TREES, x);
+        const float heat = predict_trees(truetemp_heat_nodes, truetemp_heat_roots,
+                                        TRUETEMP_HEAT_NUM_TREES, x);
+        if (heat <= TRUETEMP_HEAT_GATE_MAX)
+            delta -= TRUETEMP_SHRINK_FRACTION * fmaxf(delta - TRUETEMP_DELTA_MEDIAN, 0.0f);
+        t_comp = in->raw_temperature - delta;
+    } else
+#endif
+    {
+        t_comp = predict_trees(truetemp_temp_nodes, truetemp_temp_roots,
+                               TRUETEMP_TEMP_NUM_TREES, x);
+    }
 
     float e_raw = (in->raw_humidity / 100.0f) *
                   saturation_vapor_pressure(in->raw_temperature);

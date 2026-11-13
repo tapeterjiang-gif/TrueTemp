@@ -1,0 +1,183 @@
+{
+  "created_at": "2026-11-12T23:44:43.941279+00:00",
+  "model_type": "snow2s_delta_gate_v1",
+  "protocol_version": 4,
+  "samples": 4611,
+  "features": [
+    "raw_temperature",
+    "raw_humidity",
+    "temperature_soc",
+    "temperature_co2",
+    "time_uptime",
+    "screen_brightness",
+    "screen_on_duration_s",
+    "cpu_load_10s",
+    "wifi_tx_bytes",
+    "power_charge_ma"
+  ],
+  "input_ranges": {
+    "raw_temperature": [
+      21.4,
+      26.0
+    ],
+    "raw_humidity": [
+      29.4,
+      39.9
+    ],
+    "temperature_soc": [
+      31.6,
+      57.4
+    ],
+    "temperature_co2": [
+      24.4,
+      47.6
+    ],
+    "time_uptime": [
+      28.0,
+      7200.0
+    ],
+    "screen_brightness": [
+      0.0,
+      1000.0
+    ],
+    "screen_on_duration_s": [
+      0.0,
+      7200.0
+    ],
+    "cpu_load_10s": [
+      0.0,
+      52.9
+    ],
+    "wifi_tx_bytes": [
+      0.0,
+      4233.0
+    ],
+    "power_charge_ma": [
+      0.0,
+      476.0
+    ]
+  },
+  "reference_temperature_range": [
+    20.0,
+    22.9
+  ],
+  "temperature_policy": {
+    "strategy": "snow2s_delta_gate_v1",
+    "raw_temperature_max": 26.0,
+    "delta_median": 2.599999999999998,
+    "heat_gate_max": 3.5,
+    "shrink_fraction": 0.75
+  },
+  "delta_features": [
+    "raw_humidity",
+    "temperature_soc",
+    "temperature_co2",
+    "time_uptime",
+    "screen_brightness",
+    "screen_on_duration_s",
+    "cpu_load_10s",
+    "wifi_tx_bytes",
+    "power_charge_ma"
+  ],
+  "heat_features": [
+    "temperature_soc",
+    "temperature_co2",
+    "screen_brightness",
+    "power_charge_ma"
+  ],
+  "training_parameters": {
+    "objective": "regression",
+    "metric": "rmse",
+    "boosting_type": "gbdt",
+    "num_leaves": 15,
+    "max_depth": 5,
+    "learning_rate": 0.05,
+    "n_estimators": 500,
+    "min_data_in_leaf": 8,
+    "feature_fraction": 0.8,
+    "bagging_fraction": 0.8,
+    "bagging_freq": 5,
+    "lambda_l1": 0.1,
+    "lambda_l2": 0.1,
+    "verbose": -1,
+    "random_state": 42,
+    "n_jobs": 2
+  },
+  "delta_training_mae": 0.040380083068871385,
+  "heat_training_mae": 0.07989888031779759,
+  "source_model": "/Users/jason/src/work/snow2s/TrueTemp/models/snow2s-20261112",
+  "source_hashes": {
+    "model_temperature.json": "3c94249000c5d7320cb4d95f98f5819a256b9f29675818eedeaff67592709b39",
+    "model_vapor_pressure.json": "8db4308106445bd44c225f3d609d00773853bb9852b611b617ef4ed81e9429c3",
+    "model_2stage_metadata.json": "8ee175c19c80c972b122c5e27ebc6a2409764a9dc23db97727db5fda92e9ca63",
+    "pairs.csv": "b29b8cec7168ff87aec8b3ed637c710138f7d6595c80381d7e473773b9d738d7"
+  },
+  "source_files": [
+    {
+      "source_file": "data/r01_cold_start_baseline_screen_on_50pct_battery_wifi_on_idle_60min_20261111_1048.xlsx",
+      "sha256": "a2877aa01dce583dba697f0af80bd8520d964988b455015f09194315a84bb376",
+      "pairs": 240
+    },
+    {
+      "source_file": "data/r02_low_brightness_screen_on_20pct_battery_idle_20261111_1149.xlsx",
+      "sha256": "ef62f9b17df2591a5d97385a0504346824203299aa46088ca3cd4f1af08ea187",
+      "pairs": 135
+    },
+    {
+      "source_file": "data/r03_high_brightness_screen_on_100pct_battery_idle_20261111_1227.xlsx",
+      "sha256": "2c65f652457a9fce501bfc8dfe68856f5eedbca6130ce947909bded20df8922f",
+      "pairs": 162
+    },
+    {
+      "source_file": "data/r05_charging_screen_on_50pct_idle_20261111_1314.xlsx",
+      "sha256": "ee720203169b4808abc97e3b895c2cff38da527f81e5fa3fc19cf54d69ae8165",
+      "pairs": 618
+    },
+    {
+      "source_file": "data/r04_screen_off_battery_idle_20261111_1556.xlsx",
+      "sha256": "acfdb3cbdfadb6571f79d49fb5cd9e7c487969be03bb7fa830d7b6e8342cc582",
+      "pairs": 170
+    },
+    {
+      "source_file": "data/20261111_1708.xlsx",
+      "sha256": "bbb9547f3d00250aefdd240ee88f03fbb9b25e92f8b7470f5782fd2c82443442",
+      "pairs": 606
+    },
+    {
+      "source_file": "data/20261111_1924.xlsx",
+      "sha256": "8fd9180f7cb2c16003396a88b67a6bede4b1539773dbe07817b47cd1ee6bb83b",
+      "pairs": 572
+    },
+    {
+      "source_file": "data/20261111_2157.xlsx",
+      "sha256": "370d0bc4f692a519286b19944e5cf7943138121be9c980383d29f5435cc3595a",
+      "pairs": 2108
+    }
+  ],
+  "source_pair_window_seconds": 5.0,
+  "pairing": "replay saved source_file / REF timestamp / DUT timestamp; no new pairing",
+  "command": [
+    "/Users/jason/src/work/snow2s/TrueTemp/.venv/bin/python",
+    "train_snow2s_hybrid.py",
+    "--base-dir",
+    "models/snow2s-20261112",
+    "--output-dir",
+    "models/snow2s-20261113-hybrid"
+  ],
+  "versions": {
+    "python": "3.12.14",
+    "lightgbm": "4.7.0",
+    "numpy": "2.5.3",
+    "pandas": "3.0.5"
+  },
+  "code_git_head": "e5a5e4fa5696b36e6d381a1996ae18e966a9f2a2",
+  "code_sha256": {
+    "train_snow2s_hybrid.py": "1d5d26b610a9f7546db5686081a63c5d3e96a3302f3a7ad9c2d2c05943062fea",
+    "train_coupled_model.py": "983c11647f2d15d75c8b35213da755dab671dc979dc94e831e827afa4eafc73d",
+    "gen_c_model.py": "be5990f75942deafb697e3b6ba811f30ae8477cf07b54ab7d04522a1536bf313",
+    "linux/infer_truetemp.py": "611a8c7a327923a33e1ff871059878f767bff3d02d2e34854f20c2e421360d3d",
+    "linux/truetemp.c": "99030c6d863a225a735deda379bf764aa8dc2e9578c5670f897f785502f1da87",
+    "linux/truetemp.h": "58cbb390bc6c758bbeb2a4f7e9cd64a2eb529cb2d375069158ba20cb4848f14c"
+  },
+  "validation_scope": "Training replay only; higher ambient temperatures require independent field validation."
+}

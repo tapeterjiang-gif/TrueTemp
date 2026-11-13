@@ -17,6 +17,7 @@ BLE 实时采集 REF（SHT4x 参考表）与 DUT（Qingping 设备）广播，�
                   temperature_co2, time_uptime, screen_brightness,
                   screen_on_duration_s, cpu_load_10s, wifi_load_10s,
                   power_charge_ma, c5_soc_temp, version, wifi_tx_bytes, ambient_lux, power_charge_mv
+      REF_RAW / DUT_RAW: 逐条有效广播，以实际接收时间记录
 依赖:
     bleak（BLE 扫描）; xlsx 写入使用 Python 标准库
 """
@@ -32,6 +33,7 @@ import zipfile
 from dataclasses import dataclass
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from src.truetemp.protocol import decode_dut
 
@@ -102,16 +104,30 @@ def _sheet_xml(header, rows):
     return ''.join(parts)
 
 
-def write_xlsx(path, ref_rows, dut_rows):
-    """ref_rows: [[ts, temp, hum], ...]; dut_rows: [[ts, DUT 字段...], ...]"""
+REF_HEADER = ['timestamp', 'temperature', 'humidity']
+DUT_HEADER = ['received_at', 'raw_temperature', 'raw_humidity', 'temperature_soc',
+              'temperature_co2', 'time_uptime', 'screen_brightness',
+              'screen_on_duration_s', 'cpu_load_10s', 'wifi_load_10s',
+              'power_charge_ma', 'c5_soc_temp', 'version', 'wifi_tx_bytes',
+              'ambient_lux', 'power_charge_mv']
+
+
+def write_xlsx(path, ref_rows, dut_rows, *, raw_ref_rows=None, raw_dut_rows=None):
+    sheets = [('REF', REF_HEADER, ref_rows), ('DUT', DUT_HEADER, dut_rows)]
+    if raw_ref_rows is not None:
+        sheets.extend([
+            ('REF_RAW', [*REF_HEADER, 'monotonic_ms', 'payload_hex'], raw_ref_rows),
+            ('DUT_RAW', [*DUT_HEADER, 'monotonic_ms', 'payload_hex'], raw_dut_rows or []),
+        ])
+    sheet_numbers = range(1, len(sheets) + 1)
     ct = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
           '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
           '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
           '<Default Extension="xml" ContentType="application/xml"/>'
           '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
-          '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
-          '<Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
-          '</Types>')
+          + ''.join(f'<Override PartName="/xl/worksheets/sheet{i}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+                    for i in sheet_numbers)
+          + '</Types>')
     rels = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
             '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
@@ -119,26 +135,27 @@ def write_xlsx(path, ref_rows, dut_rows):
     wb = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
           '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
           'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
-          '<sheets><sheet name="REF" sheetId="1" r:id="rId1"/>'
-          '<sheet name="DUT" sheetId="2" r:id="rId2"/></sheets></workbook>')
+          '<sheets>'
+          + ''.join(f'<sheet name="{name}" sheetId="{i}" r:id="rId{i}"/>'
+                    for i, (name, _, _) in enumerate(sheets, 1))
+          + '</sheets></workbook>')
     wb_rels = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
                '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-               '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'
-               '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>'
-               '</Relationships>')
+               + ''.join(f'<Relationship Id="rId{i}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet{i}.xml"/>'
+                         for i in sheet_numbers)
+               + '</Relationships>')
 
-    with zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED) as z:
-        z.writestr('[Content_Types].xml', ct)
-        z.writestr('_rels/.rels', rels)
-        z.writestr('xl/workbook.xml', wb)
-        z.writestr('xl/_rels/workbook.xml.rels', wb_rels)
-        z.writestr('xl/worksheets/sheet1.xml', _sheet_xml(['timestamp', 'temperature', 'humidity'], ref_rows))
-        z.writestr('xl/worksheets/sheet2.xml',
-                   _sheet_xml(['received_at', 'raw_temperature', 'raw_humidity', 'temperature_soc',
-                               'temperature_co2', 'time_uptime', 'screen_brightness',
-                               'screen_on_duration_s', 'cpu_load_10s', 'wifi_load_10s',
-                               'power_charge_ma', 'c5_soc_temp', 'version', 'wifi_tx_bytes',
-                               'ambient_lux', 'power_charge_mv'], dut_rows))
+    path = Path(path)
+    with TemporaryDirectory(dir=path.parent) as directory:
+        checkpoint = Path(directory) / path.name
+        with zipfile.ZipFile(checkpoint, 'w', zipfile.ZIP_DEFLATED) as z:
+            z.writestr('[Content_Types].xml', ct)
+            z.writestr('_rels/.rels', rels)
+            z.writestr('xl/workbook.xml', wb)
+            z.writestr('xl/_rels/workbook.xml.rels', wb_rels)
+            for i, (_, header, rows) in enumerate(sheets, 1):
+                z.writestr(f'xl/worksheets/sheet{i}.xml', _sheet_xml(header, rows))
+        checkpoint.replace(path)
 
 
 # ---------------------------------------------------------------- 采集器
@@ -152,7 +169,8 @@ class Recorder:
         self.company = DUT_COMPANY_ID if role == 'dut' else REF_COMPANY_ID
         self.decoder = decode_dut if role == 'dut' else decode_ref
         self.samples = []          # xlsx 数据行
-        self.count = 0             # 已落盘样本数
+        self.raw_samples = []      # 逐条有效广播
+        self.count = 0             # 按间隔采样的记录数
         self.packets = 0           # 收到报文总数
         self.invalid = 0           # 无效报文数
         self.pending = None
@@ -165,30 +183,34 @@ class Recorder:
         payload = adv.manufacturer_data.get(self.company)
         if payload is None:
             return
+        received_at = datetime.now(CST)
+        received_ns = time.monotonic_ns()
         self.packets += 1
         try:
             reading = self.decoder(payload)
         except ValueError:
             self.invalid += 1
             return
-        self.pending = reading
-        self.last_valid = time.monotonic()
+        self.pending = self.sample_values(reading)
+        self.raw_samples.append([received_at.isoformat(sep=' ', timespec='milliseconds'),
+                                 *self.pending, received_ns // 1_000_000, payload.hex()])
+        self.last_valid = received_ns / 1_000_000_000
         self.last_reading = reading
+
+    def sample_values(self, r):
+        if self.role == 'dut':
+            return [round(r.raw_temperature, 1), round(r.raw_humidity, 1),
+                    round(r.temperature_soc, 1), round(r.temperature_co2, 1),
+                    r.time_uptime, r.screen_brightness, r.screen_on_duration_s,
+                    r.cpu_load_10s, r.wifi_load_10s, r.power_charge_ma,
+                    None if r.c5_soc_temp is None else round(r.c5_soc_temp, 1), r.version,
+                    r.wifi_tx_bytes, r.ambient_lux, r.power_charge_mv]
+        return [round(r.temperature, 1), round(r.humidity, 1)]
 
     def flush_sample(self):
         if self.pending is None:
             return
-        r = self.pending
-        if self.role == 'dut':
-            row = [local_now(), round(r.raw_temperature, 1), round(r.raw_humidity, 1),
-                   round(r.temperature_soc, 1), round(r.temperature_co2, 1),
-                   r.time_uptime, r.screen_brightness, r.screen_on_duration_s,
-                   r.cpu_load_10s, r.wifi_load_10s, r.power_charge_ma,
-                   None if r.c5_soc_temp is None else round(r.c5_soc_temp, 1), r.version,
-                   r.wifi_tx_bytes, r.ambient_lux, r.power_charge_mv]
-        else:
-            row = [local_now(), round(r.temperature, 1), round(r.humidity, 1)]
-        self.samples.append(row)
+        self.samples.append([local_now(), *self.pending])
         self.count += 1
         self.pending = None
 
@@ -248,7 +270,9 @@ async def run_collect(ref, dut, output, interval, demo=False):
     def save_once():
         if ref_rec is None or ref_rec.count == 0:
             return False
-        write_xlsx(path, ref_rec.samples, dut_rec.samples if dut_rec else [])
+        write_xlsx(path, ref_rec.samples, dut_rec.samples if dut_rec else [],
+                   raw_ref_rows=ref_rec.raw_samples,
+                   raw_dut_rows=dut_rec.raw_samples if dut_rec else [])
         return True
 
     def save_if_due(force=False):

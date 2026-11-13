@@ -1,0 +1,66 @@
+[
+  {
+    "file": "data/r01_cold_start_baseline_screen_on_50pct_battery_wifi_on_idle_60min_20261111_1048.xlsx",
+    "sha256": "a2877aa01dce583dba697f0af80bd8520d964988b455015f09194315a84bb376",
+    "saved_pairs": 240,
+    "ref_min": 20.0,
+    "ref_max": 21.1,
+    "ref_24_25": 0
+  },
+  {
+    "file": "data/r02_low_brightness_screen_on_20pct_battery_idle_20261111_1149.xlsx",
+    "sha256": "ef62f9b17df2591a5d97385a0504346824203299aa46088ca3cd4f1af08ea187",
+    "saved_pairs": 135,
+    "ref_min": 20.4,
+    "ref_max": 21.0,
+    "ref_24_25": 0
+  },
+  {
+    "file": "data/r03_high_brightness_screen_on_100pct_battery_idle_20261111_1227.xlsx",
+    "sha256": "2c65f652457a9fce501bfc8dfe68856f5eedbca6130ce947909bded20df8922f",
+    "saved_pairs": 162,
+    "ref_min": 20.7,
+    "ref_max": 21.7,
+    "ref_24_25": 0
+  },
+  {
+    "file": "data/r05_charging_screen_on_50pct_idle_20261111_1314.xlsx",
+    "sha256": "ee720203169b4808abc97e3b895c2cff38da527f81e5fa3fc19cf54d69ae8165",
+    "saved_pairs": 618,
+    "ref_min": 21.2,
+    "ref_max": 21.5,
+    "ref_24_25": 0
+  },
+  {
+    "file": "data/r04_screen_off_battery_idle_20261111_1556.xlsx",
+    "sha256": "acfdb3cbdfadb6571f79d49fb5cd9e7c487969be03bb7fa830d7b6e8342cc582",
+    "saved_pairs": 170,
+    "ref_min": 20.9,
+    "ref_max": 21.3,
+    "ref_24_25": 0
+  },
+  {
+    "file": "data/20261111_1708.xlsx",
+    "sha256": "bbb9547f3d00250aefdd240ee88f03fbb9b25e92f8b7470f5782fd2c82443442",
+    "saved_pairs": 606,
+    "ref_min": 20.3,
+    "ref_max": 21.4,
+    "ref_24_25": 0
+  },
+  {
+    "file": "data/20261111_1924.xlsx",
+    "sha256": "8fd9180f7cb2c16003396a88b67a6bede4b1539773dbe07817b47cd1ee6bb83b",
+    "saved_pairs": 572,
+    "ref_min": 20.3,
+    "ref_max": 22.9,
+    "ref_24_25": 0
+  },
+  {
+    "file": "data/20261111_2157.xlsx",
+    "sha256": "370d0bc4f692a519286b19944e5cf7943138121be9c980383d29f5435cc3595a",
+    "saved_pairs": 2108,
+    "ref_min": 20.7,
+    "ref_max": 21.6,
+    "ref_24_25": 0
+  }
+]

@@ -272,12 +272,13 @@ def gen_linux_data(temp_json_path, de_json_path, output_path, max_trees=500, sno
       - 先序布局，左子节点恒为 node+1，只存右子节点
       - 两个模型共用一套特征索引宏，防止重训练后特征顺序变化导致错位
     """
-    from linux.infer_truetemp import FEATURES, SNOW2S_FEATURES, load_trees
+    from linux.infer_truetemp import FEATURES, SNOW2S_FEATURES, load_trees, load_temperature_policy
     features = SNOW2S_FEATURES if snow2s else FEATURES
     temp_trees = load_trees(temp_json_path, max_trees, snow2s)
     de_trees = load_trees(de_json_path, max_trees, snow2s)
+    policy = load_temperature_policy(temp_json_path, max_trees, snow2s)
 
-    def build_compact(trees):
+    def build_compact(trees, model_features=features):
         roots, nodes = [], []
         for tree in trees:
             def collect(node):
@@ -291,7 +292,8 @@ def gen_linux_data(temp_json_path, de_json_path, output_path, max_trees=500, sno
                     right_idx = collect(node['r'])
                     if left_idx != idx + 1:
                         raise SystemExit('树不是先序存储，无法使用 node+1 左子节点优化')
-                    nodes[idx] = {'is_leaf': 0, 'feature': node['f'],
+                    feature = features.index(model_features[node['f']])
+                    nodes[idx] = {'is_leaf': 0, 'feature': feature,
                                   'threshold': float(node['t']),
                                   'right': right_idx, 'value': 0.0}
                 return idx
@@ -301,7 +303,13 @@ def gen_linux_data(temp_json_path, de_json_path, output_path, max_trees=500, sno
 
     temp_roots, temp_nodes = build_compact(temp_trees)
     de_roots, de_nodes = build_compact(de_trees)
-    if max(len(temp_nodes), len(de_nodes)) > 65535:
+    branches = {}
+    if policy is not None:
+        for name in ('delta', 'heat'):
+            branch = policy[f'{name}_model']
+            branches[name] = build_compact(branch['trees'], branch['features'])
+    if max(len(nodes) for _, nodes in [(temp_roots, temp_nodes), (de_roots, de_nodes),
+                                       *branches.values()]) > 65535:
         raise ValueError('Linux 模型节点超出 uint16 索引范围')
 
     def cf(v):
@@ -345,6 +353,22 @@ def gen_linux_data(temp_json_path, de_json_path, output_path, max_trees=500, sno
         f'#define TRUETEMP_DE_NUM_NODES {len(de_nodes)}',
         '',
     ]
+    if policy is not None:
+        lines += [
+            '// This model requires the delta-gate runtime; reject old absolute-only C code.',
+            '#if !defined(TRUETEMP_RUNTIME_DELTA_GATE_VERSION) || TRUETEMP_RUNTIME_DELTA_GATE_VERSION != 1',
+            '#error "This model requires the Snow2S delta-gate v1 runtime"',
+            '#endif',
+            '#define TRUETEMP_HAS_DELTA_GATE 1',
+            f'#define TRUETEMP_RAW_TEMPERATURE_MAX {cf(policy["raw_temperature_max"])}',
+            f'#define TRUETEMP_DELTA_MEDIAN {cf(policy["delta_median"])}',
+            f'#define TRUETEMP_HEAT_GATE_MAX {cf(policy["heat_gate_max"])}',
+            f'#define TRUETEMP_SHRINK_FRACTION {cf(policy["shrink_fraction"])}',
+        ]
+        for name, (roots, nodes) in branches.items():
+            lines += [f'#define TRUETEMP_{name.upper()}_NUM_TREES {len(roots)}',
+                      f'#define TRUETEMP_{name.upper()}_NUM_NODES {len(nodes)}']
+        lines.append('')
 
     def emit(name, roots, nodes):
         lines.append(f'static const uint16_t {name}_roots[{len(roots)}] = {{')
@@ -361,13 +385,15 @@ def gen_linux_data(temp_json_path, de_json_path, output_path, max_trees=500, sno
 
     emit('truetemp_temp', temp_roots, temp_nodes)
     emit('truetemp_de', de_roots, de_nodes)
+    for name, (roots, nodes) in branches.items():
+        emit(f'truetemp_{name}', roots, nodes)
     lines.append('#endif')
 
     os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
     with open(output_path, 'w') as f:
         f.write('\n'.join(lines))
 
-    total = len(temp_nodes) + len(de_nodes)
+    total = len(temp_nodes) + len(de_nodes) + sum(len(nodes) for _, nodes in branches.values())
     print(f'Generated (linux): {output_path} '
           f'({total} nodes, {total * 12 / 1024:.1f} KiB rodata, {max_trees} trees/model)')
 

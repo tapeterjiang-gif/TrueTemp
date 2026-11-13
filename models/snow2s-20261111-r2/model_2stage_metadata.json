@@ -1,0 +1,118 @@
+{
+  "created_at": "2026-11-11T19:19:23.743849",
+  "model_type": "two_stage_thermo_humidity",
+  "samples": 1895,
+  "features": [
+    "raw_temperature",
+    "raw_humidity",
+    "temperature_soc",
+    "temperature_co2",
+    "time_uptime",
+    "screen_brightness",
+    "screen_on_duration_s",
+    "cpu_load_10s",
+    "wifi_tx_bytes",
+    "power_charge_ma"
+  ],
+  "stage1_temperature": {
+    "cv_results": [
+      {
+        "rmse": 0.46057417983362386,
+        "mae": 0.44745987589522324,
+        "r2": -15.713615484486741
+      },
+      {
+        "rmse": 0.15733207524393936,
+        "mae": 0.12523027289583225,
+        "r2": 0.4263799303923318
+      },
+      {
+        "rmse": 0.26824288070183333,
+        "mae": 0.23818487734946145,
+        "r2": -0.32225129469128433
+      }
+    ],
+    "full_eval": {
+      "rmse": 0.028616429490105236,
+      "mae": 0.019872150968099436,
+      "r2": 0.9906784639949752
+    }
+  },
+  "stage2_vapor_pressure_residual": {
+    "cv_results": [
+      {
+        "rmse": 0.14118977266243174,
+        "mae": 0.1137932695958365,
+        "r2": 0.15793137336566343
+      },
+      {
+        "rmse": 0.2601231764430466,
+        "mae": 0.19330728696299082,
+        "r2": -0.40576349274849255
+      },
+      {
+        "rmse": 0.1609688062239564,
+        "mae": 0.12372415148101032,
+        "r2": 0.15026654780174198
+      }
+    ],
+    "delta_e_mean": -0.6023242157763105,
+    "delta_e_std": 0.3124057546260598
+  },
+  "combined": {
+    "temperature": {
+      "rmse": 0.028616429490105236,
+      "mae": 0.019872150968099436,
+      "r2": 0.9906784639949752
+    },
+    "humidity": {
+      "rmse": 0.16322341921414874,
+      "mae": 0.11158006053135525,
+      "r2": 0.9959714187110352
+    }
+  },
+  "protocol_version": 4,
+  "raw_pair_window_seconds": 5.0,
+  "input_ranges": {
+    "raw_temperature": [
+      21.4,
+      25.3
+    ],
+    "raw_humidity": [
+      29.4,
+      39.4
+    ],
+    "temperature_soc": [
+      31.6,
+      56.8
+    ],
+    "temperature_co2": [
+      24.4,
+      46.8
+    ],
+    "time_uptime": [
+      29.0,
+      7200.0
+    ],
+    "screen_brightness": [
+      0.0,
+      1000.0
+    ],
+    "screen_on_duration_s": [
+      0.0,
+      7200.0
+    ],
+    "cpu_load_10s": [
+      0.0,
+      52.9
+    ],
+    "wifi_tx_bytes": [
+      0.0,
+      3957.0
+    ],
+    "power_charge_ma": [
+      0.0,
+      476.0
+    ]
+  }
+}

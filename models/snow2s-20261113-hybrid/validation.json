@@ -1,0 +1,27 @@
+{
+  "scope": "Local host C / Python parity; training replay and synthetic raw-temperature probes, no field accuracy claim",
+  "samples": 4611,
+  "c_python_max_abs_diff": {
+    "temperature": 3.113562278045379e-05,
+    "humidity": 8.019336270592703e-05,
+    "dew_point": 5.4525709183295135e-06,
+    "absolute_humidity": 5.122630643228376e-06
+  },
+  "training_mae": 0.023422482949072575,
+  "training_rmse": 0.03418371187475417,
+  "probe_27_near_boundary_n": 77,
+  "probe_27_near_boundary_min_median_max": [
+    22.404014587402344,
+    22.50986099243164,
+    22.938030242919922
+  ],
+  "probe_27_all_states_reduced_count": 958,
+  "switch_jump_near_boundary_min_median_max": [
+    0.018247604370117188,
+    0.31598472595214844,
+    0.5845794677734375
+  ],
+  "preserved_absolute_trees": true,
+  "preserved_vapor_pressure_json": true,
+  "preserved_source_pair_csv": true
+}

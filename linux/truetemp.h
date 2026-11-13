@@ -27,6 +27,9 @@
  * 定义 TRUETEMP_SNOW2S 时使用独立的 DUT v4 模型和入口：
  * 背光为原始 0~1000，Wi-Fi 特征为 0~65535 Byte/s，无 C5 温度。
  * v4 的计时上限为 7200 秒，充电电流为电池侧 mA。
+ * 带 delta-gate v1 策略的 Snow2S 模型在 raw_temperature 超过训练上限时，
+ * 使用其余 9 项预测温差，再由 4 项热状态特征判断是否向训练温差中位数收缩。
+ * 策略和阈值随模型头文件发布；调用方仍传入相同的 10 项字段。
  *
  * 用法:
  *   truetemp_input_t in = {
@@ -74,7 +77,7 @@ typedef struct {
 } truetemp_output_t;
 
 #ifdef TRUETEMP_SNOW2S
-/* 输入指针需非空并已填满 10 个 v4 字段。 */
+/* 输入指针需非空并已填满 10 个 v4 字段；delta-gate 模型遇到非有限输入时输出 NAN。 */
 void truetemp_compensate_snow2s(const truetemp_input_t *in, truetemp_output_t *out);
 #else
 /* 输入指针需非空并已填满 11 个 v3 字段。 */

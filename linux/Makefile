@@ -5,6 +5,7 @@ LDLIBS ?= -lm
 
 TARGET = truetemp_infer
 OBJS = truetemp.o truetemp_infer.o
+SNOW2S_OBJS = truetemp_snow2s.o truetemp_infer_snow2s.o
 SNOW2S_MODEL_DIR ?= ../models/snow2s
 
 all: $(TARGET)
@@ -20,16 +21,17 @@ truetemp_infer.o: truetemp_infer.c truetemp.h
 
 snow2s: truetemp_infer_snow2s
 
-truetemp_infer_snow2s: truetemp_snow2s.o truetemp_infer_snow2s.o
-	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+truetemp_infer_snow2s: $(SNOW2S_OBJS) FORCE_SNOW2S_MODEL
+	$(CC) $(LDFLAGS) -o $@ $(SNOW2S_OBJS) $(LDLIBS)
 
-truetemp_snow2s.o: truetemp.c truetemp.h truetemp_snow2s_model_data.h
+truetemp_snow2s.o: truetemp.c truetemp.h truetemp_snow2s_model_data.h FORCE_SNOW2S_MODEL
 	$(CC) $(CFLAGS) -DTRUETEMP_SNOW2S -c $< -o $@
 
 truetemp_infer_snow2s.o: truetemp_infer.c truetemp.h
 	$(CC) $(CFLAGS) -DTRUETEMP_SNOW2S -c $< -o $@
 
-truetemp_snow2s_model_data.h: $(SNOW2S_MODEL_DIR)/model_temperature.json $(SNOW2S_MODEL_DIR)/model_vapor_pressure.json ../gen_c_model.py infer_truetemp.py
+# Regenerate when the caller selects another model directory, even if its files are older.
+truetemp_snow2s_model_data.h: $(SNOW2S_MODEL_DIR)/model_temperature.json $(SNOW2S_MODEL_DIR)/model_vapor_pressure.json ../gen_c_model.py infer_truetemp.py FORCE_SNOW2S_MODEL
 	python3 ../gen_c_model.py --linux --snow2s --model-dir "$(SNOW2S_MODEL_DIR)" --output "$@"
 
 model:
@@ -38,4 +40,6 @@ model:
 clean:
 	rm -f $(TARGET) $(OBJS) truetemp_infer_snow2s truetemp_snow2s.o truetemp_infer_snow2s.o
 
-.PHONY: all model clean snow2s
+FORCE_SNOW2S_MODEL:
+
+.PHONY: all model clean snow2s FORCE_SNOW2S_MODEL

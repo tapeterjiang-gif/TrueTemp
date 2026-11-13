@@ -1,0 +1,60 @@
+{
+  "scope": "Local host C/Python parity and saved-data replay; no device accuracy validation",
+  "policy": {
+    "raw_temperature_max": 26.0,
+    "delta_median": 2.599999999999998,
+    "heat_gate_max": 4.5,
+    "shrink_fraction": 1.0
+  },
+  "samples": 4611,
+  "c_python_compared_samples": 9376,
+  "c_python_max_abs_diff": {
+    "temperature": 3.113562278045379e-05,
+    "humidity": 8.019336270592703e-05,
+    "dew_point": 5.4525709183295135e-06,
+    "absolute_humidity": 2.9210085088493543e-06
+  },
+  "preserved_model_trees_and_pair_data": true,
+  "changed_model_fields": [
+    "heat_gate_max",
+    "shrink_fraction"
+  ],
+  "example_input": {
+    "raw_temperature": 27.0,
+    "raw_humidity": 32.3,
+    "temperature_soc": 55.1,
+    "temperature_co2": 45.3,
+    "time_uptime": 572.0,
+    "screen_brightness": 980.0,
+    "screen_on_duration_s": 466.0,
+    "cpu_load_10s": 7.7,
+    "wifi_tx_bytes": 241.0,
+    "power_charge_ma": 0.0
+  },
+  "example_output": "temperature=24.4000 humidity=34.4461 dew_point=7.7286 absolute_humidity=7.6658",
+  "probe_27_near_boundary_n": 77,
+  "probe_27_near_boundary_reduced_count": 54,
+  "probe_27_near_boundary_min_median_max": [
+    22.404014587402344,
+    24.399999618530273,
+    24.399999618530273
+  ],
+  "switch_jump_near_boundary_min_median_max": [
+    0.018247604370117188,
+    2.1267738342285156,
+    2.3011398315429688
+  ],
+  "offline_evaluation_from_prior_trial": {
+    "method": "Leave one source file out; train absolute/delta/heat models per fold; derive raw upper bound and delta median from training rows; fixed heat gate 4.5 and shrink fraction 1.0",
+    "samples": 4611,
+    "overall_mae": 0.22269219914985036,
+    "out_of_range_samples": 77,
+    "out_of_range_mae": 1.9545454545454548,
+    "provenance": "Prior in-memory trial in this chat; not rerun during artifact export"
+  },
+  "regression_tests": {
+    "command": "python -m pytest -q",
+    "passed": 57,
+    "subtests_passed": 17
+  }
+}

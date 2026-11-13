@@ -26,6 +26,11 @@ SNOW2S_FEATURES = [
     'time_uptime', 'screen_brightness', 'screen_on_duration_s', 'cpu_load_10s',
     'wifi_tx_bytes', 'power_charge_ma',
 ]
+SNOW2S_DELTA_FEATURES = [name for name in SNOW2S_FEATURES if name != 'raw_temperature']
+SNOW2S_HEAT_FEATURES = [
+    'temperature_soc', 'temperature_co2', 'screen_brightness', 'power_charge_ma',
+]
+DELTA_GATE_STRATEGY = 'snow2s_delta_gate_v1'
 
 
 def load_trees(path, max_trees, snow2s=False):
@@ -40,6 +45,33 @@ def load_trees(path, max_trees, snow2s=False):
     return model['trees'][:max_trees]
 
 
+def load_temperature_policy(path, max_trees=500, snow2s=False):
+    """旧模型返回 None；新模型将温差树及策略放在同一 JSON 中，避免漏装分支。"""
+    with open(path, 'r') as f:
+        model = json.load(f)
+    policy = model.get('temperature_policy')
+    if policy is None:
+        return None
+    if (not isinstance(policy, dict) or not snow2s or model.get('protocol_version') != 4 or
+            model.get('features') != SNOW2S_FEATURES or
+            policy.get('strategy') != DELTA_GATE_STRATEGY):
+        raise ValueError(f'{path}: unsupported temperature policy')
+    for key in ('raw_temperature_max', 'delta_median', 'heat_gate_max', 'shrink_fraction'):
+        value = policy.get(key)
+        if not isinstance(value, (int, float)) or not math.isfinite(value):
+            raise ValueError(f'{path}: invalid temperature policy {key}')
+    if not 0 <= policy['shrink_fraction'] <= 1 or policy['delta_median'] > policy['heat_gate_max']:
+        raise ValueError(f'{path}: invalid temperature policy thresholds')
+    for key, features in (('delta_model', SNOW2S_DELTA_FEATURES),
+                          ('heat_model', SNOW2S_HEAT_FEATURES)):
+        branch = policy.get(key, {})
+        if (not isinstance(branch, dict) or branch.get('features') != features or branch.get('protocol_version') != 4 or
+                not branch.get('trees') or max_trees <= 0):
+            raise ValueError(f'{path}: invalid {key} features or trees')
+        branch['trees'] = branch['trees'][:max_trees]
+    return policy
+
+
 def predict(trees, x):
     total = 0.0
     for tree in trees:
@@ -50,15 +82,32 @@ def predict(trees, x):
     return total
 
 
+def predict_temperature(values, temp_trees, policy=None):
+    if policy is None:
+        return predict(temp_trees, values)
+    if len(values) != len(SNOW2S_FEATURES) or not all(map(math.isfinite, values)):
+        raise ValueError('Snow2S temperature policy requires 10 finite inputs')
+    raw = values[0]
+    if raw <= policy['raw_temperature_max']:
+        return predict(temp_trees, values)
+    inputs = dict(zip(SNOW2S_FEATURES, values))
+    delta_model, heat_model = policy['delta_model'], policy['heat_model']
+    delta = predict(delta_model['trees'], [inputs[name] for name in delta_model['features']])
+    heat = predict(heat_model['trees'], [inputs[name] for name in heat_model['features']])
+    if heat <= policy['heat_gate_max']:
+        delta -= policy['shrink_fraction'] * max(delta - policy['delta_median'], 0.0)
+    return raw - delta
+
+
 def saturation_vapor_pressure(t):
     return 6.112 * math.exp(17.67 * t / (t + 243.5))
 
 
-def compensate(values, temp_trees, de_trees):
+def compensate(values, temp_trees, de_trees, temperature_policy=None):
     t_raw, rh_raw = values[0], values[1]
     x = list(values)
 
-    t_comp = predict(temp_trees, x)
+    t_comp = predict_temperature(x, temp_trees, temperature_policy)
     e_raw = (rh_raw / 100.0) * saturation_vapor_pressure(t_raw)
     e_corr = e_raw + predict(de_trees, x)
 
@@ -105,10 +154,12 @@ def main():
     try:
         temp_trees = load_trees(os.path.join(model_dir, 'model_temperature.json'), args.trees, args.snow2s)
         de_trees = load_trees(os.path.join(model_dir, 'model_vapor_pressure.json'), args.trees, args.snow2s)
+        policy = load_temperature_policy(os.path.join(model_dir, 'model_temperature.json'),
+                                         args.trees, args.snow2s)
     except (OSError, ValueError) as error:
         parser.error(str(error))
 
-    t_comp, rh_comp, dew, ah = compensate(values, temp_trees, de_trees)
+    t_comp, rh_comp, dew, ah = compensate(values, temp_trees, de_trees, policy)
     print(f'temperature={t_comp:.4f} humidity={rh_comp:.4f} '
           f'dew_point={dew:.4f} absolute_humidity={ah:.4f}')
 

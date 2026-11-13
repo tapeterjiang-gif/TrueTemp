@@ -73,7 +73,7 @@ python3 exam_model.py data/20261023_1948.xlsx --trees 200
 python3 collect_data.py collect --demo 5           # demo 无需 bleak
 ```
 
-xlsx 保存格式与 20260912_2328.xlsx 一致：REF sheet（timestamp, temperature, humidity）+ DUT sheet（received_at 及 11 个字段）。文件以启动采集时间命名（data/年月日_时分.xlsx），采集过程中每满 50 条 REF 样本落盘一次，Ctrl+C 时最终保存。
+XLSX 中的 `REF` 和 `DUT` 按 `--interval` 记录每个窗口内最新的有效读数。`REF_RAW` 和 `DUT_RAW` 逐条记录有效广播，包含实际接收时间、单调时钟毫秒数和原始载荷。文件以采集开始时间命名，REF 或 DUT 每满 50 条窗口样本落盘一次，按 Ctrl+C 最终保存。
 
 ### 生成 C 头文件
 
@@ -135,8 +135,8 @@ Rockchip Linux 推理使用 float 树模型。默认目标使用既有 DUT v3 �
 
 #### Snow2S v4
 
-先用 `./collect` 同时采集参考表与 Snow2S v4 DUT。训练读取同一 XLSX 中时间戳一致的
-REF/DUT 样本，只选 `version=4` 的 DUT 行。背光按原始 0～1000 输入，Wi-Fi 特征为
+先用 `./collect collect --interval 10` 同时采集参考表与 Snow2S v4 DUT。训练优先读取同一 XLSX 中的原始接收记录，只选 `version=4` 的 DUT 行。训练合并 10 毫秒内载荷相同的重复回调，在 ±2 秒内优先匹配时间差最小的 REF/DUT，每条记录最多用一次。早期 XLSX 沿用同秒配对。
+背光按原始 0～1000 输入，Wi-Fi 特征为
 `wifi_tx_bytes`（Byte/s）。C5 温度和旧 Wi-Fi 负载百分比不属于此模型。
 
 ```bash
@@ -145,11 +145,78 @@ python3 linux/infer_truetemp.py --snow2s 26.1 25.3 38.2 32.0 7200 1000 120 11 18
 make -C linux snow2s
 ```
 
-训练结果默认写入 `models/snow2s/`，元数据包含各特征的实测范围。Python 与 C 按相同顺序
+训练结果默认写入 `models/snow2s/`，其中 `pairs.csv` 记录每对的来源文件、配对方式和接收时间差。早期 XLSX 的实际接收时间差留空。元数据包含各特征的实测范围。Python 与 C 按相同顺序
 读取 10 个 v4 字段。上例中 `1000` 是背光，`1800` 是 Wi-Fi 发送速率。
 C 目标从这对 JSON 生成 `truetemp_snow2s_model_data.h` 并产出 `truetemp_infer_snow2s`。
 直接集成 C 时，编译库和调用方都定义 `TRUETEMP_SNOW2S`，调用 `truetemp_compensate_snow2s`。
 训练与导出需要先提供实际 v4 数据，已有 v3 模型不能作为 v4 模型加载。
+
+#### Snow2S 温差回退候选版（20261113）
+
+候选代码和模型在 `models/snow2s-20261113-hybrid/`。原始温度不高于 26℃ 时使用
+`20261112` 的绝对温度模型；高于 26℃ 时使用其余 9 项输入预测
+`delta = raw_temperature - REF temperature`，输出 `raw_temperature - delta`。
+四项热状态模型使用 SoC 温度、CO₂ 模块温度、亮度和充电电流预测温差。当该预测值
+不高于 3.5℃ 时，执行 `delta -= 0.75 * max(delta - 2.6, 0)`。阈值随模型一起导出。
+湿度、露点和绝对湿度按最终温度与水汽压计算。
+
+从保存的配对表生成一个新候选目录：
+
+```bash
+.venv/bin/python train_snow2s_hybrid.py \
+  --base-dir models/snow2s-20261112 \
+  --output-dir models/snow2s-hybrid-new
+```
+
+训练重放原配对表指定的 4,611 对记录，使用源文件内两侧时间戳回查，不重新扩大配对。
+`training_pairs.csv` 保存 REF 温湿度、原始输入及来源；元数据保存训练参数、软件版本、
+原始文件和代码 SHA-256。原绝对温度树和水汽压模型保留在候选包中。
+
+编译已生成的候选模型：
+
+```bash
+make -C linux snow2s SNOW2S_MODEL_DIR=../models/snow2s-20261113-hybrid
+python3 linux/infer_truetemp.py --snow2s --model-dir models/snow2s-20261113-hybrid \
+  27 32.3 55.1 45.3 572 980 466 7.7 241 0
+```
+
+接入 Snow2SApp 时一起使用候选目录中的 `truetemp.c`、`truetemp.h` 和
+`truetemp_snow2s_model_data.h`，编译库和调用方都定义 `TRUETEMP_SNOW2S`，调用
+`truetemp_compensate_snow2s()`。输入字段顺序、单位和函数签名与现有 Snow2S 相同。
+新模型头会检查运行时代码版本，旧推理代码不能单独搭配新头文件使用。
+
+这是本机验证的候选版本。低于训练下限时沿用绝对温度模型，未加入低温回退。
+26℃ 上限采用直接切换；77 条接近上限的历史工况在边界处的输出跳变量约
+0.018～0.585℃。27℃ 模拟的输出中位数约 22.51℃，尚未证明可纠正现场 24.x℃ 的偏差。
+`validation.json` 记录本机 C/Python 复算误差及边界结果，实机精度需用完整现场输入验证。
+
+#### Snow2S 实机对比版：阈值 4.5℃、少扣 100%
+
+独立候选包在 `models/snow2s-20261113-gate45-shrink100/`，原候选包保留用于对比。
+新包的模型树和配对数据与原候选包一致，只将 `heat_gate_max` 改为 `4.5`、
+`shrink_fraction` 改为 `1.0`。原始温度高于 26℃ 且四项预测温差不高于 4.5℃ 时，
+使用 `min(预测温差, 2.6)` 扣减；其余情况沿用原分支逻辑。
+
+可复现生成命令（输出目录须不存在）：
+
+```bash
+.venv/bin/python train_snow2s_hybrid.py \
+  --base-dir models/snow2s-20261112 \
+  --output-dir models/snow2s-20261113-gate45-shrink100 \
+  --heat-gate-max 4.5 --shrink-fraction 1.0
+```
+
+编译和本机试算：
+
+```bash
+make -C linux snow2s SNOW2S_MODEL_DIR=../models/snow2s-20261113-gate45-shrink100
+./linux/truetemp_infer_snow2s 27 32.3 55.1 45.3 572 980 466 7.7 241 0
+```
+
+该示例输出 `temperature=24.4000`。实机接入使用新包中的 `truetemp.c`、`truetemp.h`、
+`truetemp_snow2s_model_data.h`，编译库和调用方均定义 `TRUETEMP_SNOW2S`。
+完整接入说明见候选包 `README.md`，本机验证结果见 `validation.json`。
+此版仍在 26℃ 处直接切换；77 条接近上限的历史工况在边界处的最大输出跳变约 2.301℃。
 
 #### 既有 v3
 
