@@ -1,0 +1,99 @@
+{
+  "created_at": "2026-11-14T06:31:04.559200+00:00",
+  "samples": 8557,
+  "features": [
+    "raw_temperature",
+    "raw_humidity",
+    "temperature_soc",
+    "temperature_co2",
+    "time_uptime",
+    "screen_brightness",
+    "screen_on_duration_s",
+    "cpu_load_10s",
+    "wifi_tx_bytes",
+    "power_charge_ma"
+  ],
+  "protocol_version": 4,
+  "training_parameters": {
+    "objective": "regression",
+    "metric": "rmse",
+    "boosting_type": "gbdt",
+    "num_leaves": 15,
+    "max_depth": 5,
+    "learning_rate": 0.05,
+    "n_estimators": 200,
+    "min_data_in_leaf": 8,
+    "feature_fraction": 0.8,
+    "bagging_fraction": 0.8,
+    "bagging_freq": 5,
+    "lambda_l1": 0.1,
+    "lambda_l2": 0.1,
+    "verbose": -1,
+    "random_state": 42,
+    "n_jobs": 2
+  },
+  "temperature_policy": {
+    "strategy": "snow2s_delta_gate_v1",
+    "raw_temperature_max": 26.4,
+    "delta_median": 2.3999999999999986,
+    "heat_gate_max": 4.5,
+    "shrink_fraction": 1.0
+  },
+  "input_ranges": {
+    "raw_temperature": [
+      21.4,
+      26.4
+    ],
+    "raw_humidity": [
+      29.4,
+      43.7
+    ],
+    "temperature_soc": [
+      31.6,
+      57.4
+    ],
+    "temperature_co2": [
+      24.4,
+      47.6
+    ],
+    "time_uptime": [
+      28.0,
+      7200.0
+    ],
+    "screen_brightness": [
+      0.0,
+      1000.0
+    ],
+    "screen_on_duration_s": [
+      0.0,
+      7200.0
+    ],
+    "cpu_load_10s": [
+      0.0,
+      52.9
+    ],
+    "wifi_tx_bytes": [
+      0.0,
+      4233.0
+    ],
+    "power_charge_ma": [
+      0.0,
+      476.0
+    ]
+  },
+  "reference_temperature_range": [
+    20.0,
+    24.2
+  ],
+  "sources": {
+    "models/snow2s-20261113-r2/training_pairs.csv": "9f6d310852c17ce6e409e864c8151745df9522222139e79897e34b9971b7a880",
+    "data/20261114_1134.xlsx": "74c6d67ee1dd5f9116baba0d0ba0e95933c890eef700a5481b8f57c9129ea880"
+  },
+  "code_sha256": {
+    "train_coupled_model.py": "983c11647f2d15d75c8b35213da755dab671dc979dc94e831e827afa4eafc73d",
+    "linux/infer_truetemp.py": "611a8c7a327923a33e1ff871059878f767bff3d02d2e34854f20c2e421360d3d",
+    "gen_c_model.py": "1b3a67cb6f8ae938df06a885cc3fa79261a28640e0af900d9de953f3deb54d89"
+  },
+  "recipe_sha256": "655d310f51882e161657399d64488696ac5f2dd61f68fb2ccc275e5e2f306b41",
+  "validation_scope": "Fixed 200 trees; last 20% of new file held out with 60 second gap. Final deployment model refitted on all data; holdout scores refer to separate evaluation model, not independent device validation."
+}

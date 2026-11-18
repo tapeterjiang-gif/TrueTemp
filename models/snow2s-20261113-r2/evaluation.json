@@ -1,0 +1,81 @@
+{
+  "method": "Chronological holdout: last 20% of the new collection file, with a 60-second gap before the holdout. Candidate models refit only on earlier rows. The delivered final model uses all rows.",
+  "new_file": "data/20261113_0756.xlsx",
+  "training_samples": 7168,
+  "holdout_samples": 631,
+  "purged_gap_samples": 4,
+  "holdout_start": "2026-11-13 18:43:54.095000+08:00",
+  "holdout_end": "2026-11-13 21:27:07.590000+08:00",
+  "reference_temperature_range": [
+    22.0,
+    22.8
+  ],
+  "reference_humidity_range": [
+    35.3,
+    40.5
+  ],
+  "fold_policy": {
+    "raw_temperature_max": 26.0,
+    "delta_median": 2.400000000000002,
+    "heat_gate_max": 4.5,
+    "shrink_fraction": 1.0
+  },
+  "out_of_range_samples": 0,
+  "reduced_samples": 0,
+  "base_time_series_cv_temperature": [
+    {
+      "rmse": 0.2402306867806016,
+      "mae": 0.16553419656590326,
+      "r2": 0.061246943993109704
+    },
+    {
+      "rmse": 0.577948404354927,
+      "mae": 0.437642385376674,
+      "r2": 0.30035959299276505
+    },
+    {
+      "rmse": 0.32540460026281187,
+      "mae": 0.2850104021973455,
+      "r2": -2.433242301688127
+    }
+  ],
+  "base_time_series_cv_note": "Existing trainer uses early stopping on each validation fold; these scores are tuning diagnostics, not an untouched final test.",
+  "limitations": [
+    "Single chronological holdout, not device validation",
+    "No reference temperature samples at 24-25 C",
+    "No out-of-range samples in this holdout; the delta fallback accuracy is not evaluated here"
+  ],
+  "previous_candidate": {
+    "temperature": {
+      "mae": 1.1152390870482107,
+      "rmse": 1.1350516401410335,
+      "bias": -1.1152390870482107,
+      "p95_abs_error": 1.3464532206697086,
+      "max_abs_error": 1.3543159454927682
+    },
+    "humidity": {
+      "mae": 2.354263035931745,
+      "rmse": 2.448341327658313,
+      "bias": 2.3540970352657227,
+      "p95_abs_error": 3.464362084135722,
+      "max_abs_error": 3.9917803216504453
+    },
+    "model_dir": "/Users/jason/src/work/snow2s/TrueTemp/models/snow2s-20261113-gate45-shrink100-compact"
+  },
+  "holdout_candidate": {
+    "temperature": {
+      "mae": 0.25737441596832705,
+      "rmse": 0.2920205025915787,
+      "bias": -0.2316269076388072,
+      "p95_abs_error": 0.44740370206104174,
+      "max_abs_error": 0.4679469856175906
+    },
+    "humidity": {
+      "mae": 0.5353161404602567,
+      "rmse": 0.6253651808351558,
+      "bias": -0.5207198530541709,
+      "p95_abs_error": 1.1563147468702581,
+      "max_abs_error": 2.876358258687347
+    }
+  }
+}

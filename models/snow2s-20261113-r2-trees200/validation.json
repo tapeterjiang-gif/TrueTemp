@@ -1,0 +1,44 @@
+{
+  "compared_samples": 16440,
+  "original_samples": 7803,
+  "synthetic_samples": 8637,
+  "independent_full_fit_exact_tree_match": {
+    "temperature": true,
+    "vapor_pressure": true,
+    "delta": true,
+    "heat": true
+  },
+  "c_python_max_abs_diff": {
+    "temperature": 2.8511667615305214e-05,
+    "humidity": 9.413825737425441e-05,
+    "dew_point": 4.869432144616326e-06,
+    "absolute_humidity": 3.1363929799965717e-06
+  },
+  "training_replay_vs_500": {
+    "temperature_mean_abs_change": 0.015985786861354656,
+    "temperature_max_abs_change": 0.2866535186767578,
+    "humidity_mean_abs_change": 0.0749673688165747,
+    "humidity_max_abs_change": 0.9428939819335938
+  },
+  "synthetic_raw_27_vs_500": {
+    "temperature_mean_abs_change": 0.015684509619556756,
+    "temperature_p95_abs_change": 0.06215667724609374,
+    "temperature_max_abs_change": 0.18042564392089844,
+    "heat_gate_decision_changes": 0,
+    "samples": 7803
+  },
+  "boundary_probe": {
+    "near_boundary_samples": 417,
+    "max_jump": 2.368053436279297,
+    "median_jump": 0.7239494323730469
+  },
+  "scope": "Host C/Python agreement and model change probes; synthetic rows have no reference labels and do not establish field accuracy.",
+  "hashes": {
+    "truetemp.c": "123396d457195a67dcfc714b8613228ad06423352ac547506f79c0a8163cc996",
+    "truetemp.h": "b65eba69ca5a09e01356d4d3193c39aa12cd05fbcce165cd3314f4fed4b1e31d",
+    "truetemp_snow2s_model_data.h": "9f19a4a455987217778995dec9211195d8627488884b0ed4e8c46a50628a393e",
+    "model_temperature.json": "f22ae409417dd4ca20cac6ad41c390edb0b24e1b49a462ec36596ab7b036b9cd",
+    "model_vapor_pressure.json": "de06cb0182d7b7cd74956c0160bdff5909904b35dbd587e5be706cb596f2c510"
+  },
+  "package_note": "Only descriptive comments in truetemp.h were updated after validation; executable code unchanged."
+}

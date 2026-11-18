@@ -1,0 +1,22 @@
+{
+  "cwd": "/Users/jason/src/work/snow2s/TrueTemp/build/snow2s-20261113-r2",
+  "argv": [
+    "/Users/jason/src/work/snow2s/TrueTemp/.venv/bin/python",
+    "-B",
+    "/Users/jason/src/work/snow2s/TrueTemp/train_coupled_model.py",
+    "--snow2s",
+    "--pair-window-seconds",
+    "5",
+    "--output-dir",
+    "/Users/jason/src/work/snow2s/TrueTemp/models/snow2s-20261113-r2-base",
+    "data/20261111_1708.xlsx",
+    "data/20261111_1924.xlsx",
+    "data/20261111_2157.xlsx",
+    "data/20261113_0756.xlsx",
+    "data/r01_cold_start_baseline_screen_on_50pct_battery_wifi_on_idle_60min_20261111_1048.xlsx",
+    "data/r02_low_brightness_screen_on_20pct_battery_idle_20261111_1149.xlsx",
+    "data/r03_high_brightness_screen_on_100pct_battery_idle_20261111_1227.xlsx",
+    "data/r04_screen_off_battery_idle_20261111_1556.xlsx",
+    "data/r05_charging_screen_on_50pct_idle_20261111_1314.xlsx"
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "model_type": "snow2s_delta_gate_v1",
+  "protocol_version": 4,
+  "samples": 7803,
+  "features": [
+    "raw_temperature",
+    "raw_humidity",
+    "temperature_soc",
+    "temperature_co2",
+    "time_uptime",
+    "screen_brightness",
+    "screen_on_duration_s",
+    "cpu_load_10s",
+    "wifi_tx_bytes",
+    "power_charge_ma"
+  ],
+  "input_ranges": {
+    "raw_temperature": [
+      21.4,
+      26.0
+    ],
+    "raw_humidity": [
+      29.4,
+      43.7
+    ],
+    "temperature_soc": [
+      31.6,
+      57.4
+    ],
+    "temperature_co2": [
+      24.4,
+      47.6
+    ],
+    "time_uptime": [
+      28.0,
+      7200.0
+    ],
+    "screen_brightness": [
+      0.0,
+      1000.0
+    ],
+    "screen_on_duration_s": [
+      0.0,
+      7200.0
+    ],
+    "cpu_load_10s": [
+      0.0,
+      52.9
+    ],
+    "wifi_tx_bytes": [
+      0.0,
+      4233.0
+    ],
+    "power_charge_ma": [
+      0.0,
+      476.0
+    ]
+  },
+  "reference_temperature_range": [
+    20.0,
+    22.9
+  ],
+  "temperature_policy": {
+    "strategy": "snow2s_delta_gate_v1",
+    "raw_temperature_max": 26.0,
+    "delta_median": 2.5,
+    "heat_gate_max": 4.5,
+    "shrink_fraction": 1.0
+  },
+  "training_parameters": {
+    "objective": "regression",
+    "metric": "rmse",
+    "boosting_type": "gbdt",
+    "num_leaves": 15,
+    "max_depth": 5,
+    "learning_rate": 0.05,
+    "n_estimators": 200,
+    "min_data_in_leaf": 8,
+    "feature_fraction": 0.8,
+    "bagging_fraction": 0.8,
+    "bagging_freq": 5,
+    "lambda_l1": 0.1,
+    "lambda_l2": 0.1,
+    "verbose": -1,
+    "random_state": 42,
+    "n_jobs": -1
+  },
+  "source_model": "models/snow2s-20261113-r2",
+  "source_pair_window_seconds": 5,
+  "source_dataset_sha256": "9f6d310852c17ce6e409e864c8151745df9522222139e79897e34b9971b7a880",
+  "export_method": "First 200 trees of each full-data 500-tree model; exact equality to independent 200-tree refits verified for all four models.",
+  "selection": "Smallest candidate satisfying the documented heuristic error-increase limits on all chronological splits and the reused holdout.",
+  "evaluation_file": "comparison.json",
+  "validation_file": "validation.json",
+  "host_platform": "macOS-27.2-arm64-arm-64bit"
+}

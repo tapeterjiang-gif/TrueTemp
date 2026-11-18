@@ -15,9 +15,13 @@ reports/
 truetemp.toml
 
 # Linux 构建产物
+/build/
 linux/*.o
 linux/truetemp_infer
 linux/truetemp_infer_snow2s
+
+# 本地重训的中间模型
+/models/snow2s-20261113-r2-base/
 
 # HTML 预览/分享缓存
 .screenshots/

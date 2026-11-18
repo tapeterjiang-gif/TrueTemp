@@ -43,6 +43,9 @@ def replay_pairs(pairs_path, source_root=ROOT):
     sources = []
     for filename, group in pairs.groupby('source_file', sort=False):
         path = source_root / filename
+        # 旧配对表记录的 RK3506 工作簿原先直接位于 data/。
+        if not path.exists() and Path(filename).parent == Path('data'):
+            path = source_root / 'data' / 'rk3506' / path.name
         methods = group.pair_method.unique().tolist()
         if len(methods) != 1 or methods[0] not in ('reception', 'legacy'):
             raise ValueError(f'{filename}: 配对方式无效或混用')

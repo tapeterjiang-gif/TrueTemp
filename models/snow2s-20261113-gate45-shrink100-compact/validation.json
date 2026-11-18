@@ -1,0 +1,50 @@
+{
+  "scope": "Lossless node-layout compaction; all model trees, thresholds and float32 values preserved; C output bitwise comparison on the host",
+  "source_model": "models/snow2s-20261113-gate45-shrink100",
+  "candidate_model": "models/snow2s-20261113-gate45-shrink100-compact",
+  "nodes": 56756,
+  "trees": 2000,
+  "node_float_bits_and_links_equal": true,
+  "model_json_and_pair_data_equal": true,
+  "sizes": {
+    "original": {
+      "header_text_bytes": 1991688,
+      "compiled_model_const_bytes": 685072,
+      "host_library_file_bytes": 710856
+    },
+    "compact": {
+      "header_text_bytes": 1254127,
+      "compiled_model_const_bytes": 458048,
+      "host_library_file_bytes": 496200
+    }
+  },
+  "compared_samples": 13503,
+  "sample_groups": {
+    "training": 4611,
+    "raw_27": 4611,
+    "at_26": 77,
+    "above_26": 77,
+    "synthetic_inputs": 4096,
+    "nonfinite_inputs": 30,
+    "example": 1
+  },
+  "all_four_c_outputs_bitwise_equal": true,
+  "example_output": {
+    "temperature": 24.399999618530273,
+    "humidity": 34.44611740112305,
+    "dew_point": 7.7286272048950195,
+    "absolute_humidity": 7.665836334228516
+  },
+  "policy": {
+    "strategy": "snow2s_delta_gate_v1",
+    "raw_temperature_max": 26.0,
+    "delta_median": 2.599999999999998,
+    "heat_gate_max": 4.5,
+    "shrink_fraction": 1.0
+  },
+  "tests": {
+    "passed": 59,
+    "subtests_passed": 17
+  },
+  "deployment": "Snow2SApp build and device validation not performed"
+}

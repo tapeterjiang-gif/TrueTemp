@@ -1,0 +1,827 @@
+{
+  "created_at": "2026-11-13T15:55:22.634500+00:00",
+  "tree_counts": [
+    100,
+    200,
+    300,
+    500
+  ],
+  "dataset_sha256": "9f6d310852c17ce6e409e864c8151745df9522222139e79897e34b9971b7a880",
+  "source_model": "models/snow2s-20261113-r2",
+  "samples": 7803,
+  "parameters": {
+    "objective": "regression",
+    "metric": "rmse",
+    "boosting_type": "gbdt",
+    "num_leaves": 15,
+    "max_depth": 5,
+    "learning_rate": 0.05,
+    "n_estimators": 500,
+    "min_data_in_leaf": 8,
+    "feature_fraction": 0.8,
+    "bagging_fraction": 0.8,
+    "bagging_freq": 5,
+    "lambda_l1": 0.1,
+    "lambda_l2": 0.1,
+    "verbose": -1,
+    "random_state": 42,
+    "n_jobs": -1
+  },
+  "evaluation": "Separate refit for each N and split; no early stopping; 60 second gaps; same fixed policy constants.",
+  "deployment": "First N trees from each full-data r2 model; no quantization. Boosting prefixes retain learned leaf values.",
+  "limitations": [
+    "Existing holdout is reused for model selection, not a new untouched final test.",
+    "Reference 24-25 C remains absent; synthetic probes cannot establish field accuracy."
+  ],
+  "selection_tolerance": {
+    "temperature_mae_increase": 0.02,
+    "temperature_p95_increase": 0.05,
+    "humidity_mae_increase": 0.1,
+    "humidity_p95_increase": 0.2
+  },
+  "splits": {
+    "chronological_1": {
+      "train": 1786,
+      "test": 1792,
+      "train_end": "2026-11-11 10:49:47.111000+00:00",
+      "test_start": "2026-11-11 10:51:01.285000+00:00",
+      "test_end": "2026-11-11 19:05:28.101000+00:00"
+    },
+    "chronological_2": {
+      "train": 3582,
+      "test": 1792,
+      "train_end": "2026-11-11 19:05:02.029000+00:00",
+      "test_start": "2026-11-11 19:06:12.234000+00:00",
+      "test_end": "2026-11-13 03:03:04.951000+00:00"
+    },
+    "chronological_3": {
+      "train": 5374,
+      "test": 1792,
+      "train_end": "2026-11-13 03:01:58.776000+00:00",
+      "test_start": "2026-11-13 03:03:16.973000+00:00",
+      "test_end": "2026-11-13 10:42:51.915000+00:00"
+    },
+    "latest_holdout": {
+      "train": 7168,
+      "test": 631,
+      "train_end": "2026-11-13 10:42:51.915000+00:00",
+      "test_start": "2026-11-13 10:43:54.095000+00:00",
+      "test_end": "2026-11-13 13:27:07.590000+00:00"
+    }
+  },
+  "results": {
+    "100": {
+      "chronological_1": {
+        "temperature": {
+          "mae": 1.02126876820439,
+          "rmse": 1.2548092772260926,
+          "bias": 0.9784903737386946,
+          "p95_abs_error": 2.0999999999999943,
+          "max_abs_error": 2.4999999999999964
+        },
+        "humidity": {
+          "mae": 2.0337065633733076,
+          "rmse": 2.5003154290522906,
+          "bias": -1.747201645931076,
+          "p95_abs_error": 4.528670225422181,
+          "max_abs_error": 7.3188891478359395
+        },
+        "delta_branch": {
+          "mae": 0.8065747473984539,
+          "rmse": 0.9080073737539608,
+          "bias": -0.7521858873338266,
+          "p95_abs_error": 1.4305651167353002,
+          "max_abs_error": 1.7618022206491208
+        },
+        "heat_branch": {
+          "mae": 0.6352368137387927,
+          "rmse": 0.7252579933815444,
+          "bias": -0.5689148857856628,
+          "p95_abs_error": 1.3920826010795904,
+          "max_abs_error": 2.021379306318962
+        },
+        "outside_samples": 1077,
+        "reduced_samples": 1077,
+        "policy": {
+          "raw_temperature_max": 24.5,
+          "delta_median": 2.200000000000003,
+          "heat_gate_max": 4.5,
+          "shrink_fraction": 1.0
+        }
+      },
+      "chronological_2": {
+        "temperature": {
+          "mae": 0.3197093818576045,
+          "rmse": 0.4277723772413791,
+          "bias": -0.14738259309651378,
+          "p95_abs_error": 0.8007687599890929,
+          "max_abs_error": 1.2460814589529328
+        },
+        "humidity": {
+          "mae": 2.9103233543952944,
+          "rmse": 3.7236765427733354,
+          "bias": 2.402809705778864,
+          "p95_abs_error": 6.581730874244023,
+          "max_abs_error": 7.590835426893854
+        },
+        "delta_branch": {
+          "mae": 0.2601945037204634,
+          "rmse": 0.36654258419442154,
+          "bias": -0.10924796537364585,
+          "p95_abs_error": 0.8537484819619112,
+          "max_abs_error": 1.5957192715439579
+        },
+        "heat_branch": {
+          "mae": 0.3384281527536235,
+          "rmse": 0.44390757279880627,
+          "bias": -0.19608990255992592,
+          "p95_abs_error": 1.0617481955289816,
+          "max_abs_error": 1.7164986809399048
+        },
+        "outside_samples": 0,
+        "reduced_samples": 0,
+        "policy": {
+          "raw_temperature_max": 26.0,
+          "delta_median": 2.700000000000003,
+          "heat_gate_max": 4.5,
+          "shrink_fraction": 1.0
+        }
+      },
+      "chronological_3": {
+        "temperature": {
+          "mae": 0.6424627073517752,
+          "rmse": 0.6973695066722333,
+          "bias": -0.6424627073517752,
+          "p95_abs_error": 1.2122732161851868,
+          "max_abs_error": 1.4222151938938623
+        },
+        "humidity": {
+          "mae": 2.675945069825029,
+          "rmse": 2.827047718599533,
+          "bias": 2.675945069825029,
+          "p95_abs_error": 4.310175327728864,
+          "max_abs_error": 4.92271508982715
+        },
+        "delta_branch": {
+          "mae": 0.7326130675338695,
+          "rmse": 0.8316424227417007,
+          "bias": 0.6597461031719547,
+          "p95_abs_error": 1.1957864883502678,
+          "max_abs_error": 1.2577167774575222
+        },
+        "heat_branch": {
+          "mae": 0.6070255884595037,
+          "rmse": 0.690818764962124,
+          "bias": 0.5910048211385596,
+          "p95_abs_error": 1.0194664454106266,
+          "max_abs_error": 1.090062250700086
+        },
+        "outside_samples": 0,
+        "reduced_samples": 0,
+        "policy": {
+          "raw_temperature_max": 26.0,
+          "delta_median": 2.599999999999998,
+          "heat_gate_max": 4.5,
+          "shrink_fraction": 1.0
+        }
+      },
+      "latest_holdout": {
+        "temperature": {
+          "mae": 0.2201657336846867,
+          "rmse": 0.2524232522805321,
+          "bias": -0.1955593433834977,
+          "p95_abs_error": 0.3938910753708491,
+          "max_abs_error": 0.3938910753708491
+        },
+        "humidity": {
+          "mae": 0.5492697950386066,
+          "rmse": 0.6216123287281486,
+          "bias": -0.5369809073347925,
+          "p95_abs_error": 1.0265393955717705,
+          "max_abs_error": 2.7257854321196646
+        },
+        "delta_branch": {
+          "mae": 0.2402775588906325,
+          "rmse": 0.2657098227299549,
+          "bias": -0.22752520692479308,
+          "p95_abs_error": 0.4660952264854785,
+          "max_abs_error": 0.5858931037687976
+        },
+        "heat_branch": {
+          "mae": 0.11987472719685649,
+          "rmse": 0.1595834616250408,
+          "bias": -0.029517582792588523,
+          "p95_abs_error": 0.3241424637861159,
+          "max_abs_error": 0.635382699439953
+        },
+        "outside_samples": 0,
+        "reduced_samples": 0,
+        "policy": {
+          "raw_temperature_max": 26.0,
+          "delta_median": 2.400000000000002,
+          "heat_gate_max": 4.5,
+          "shrink_fraction": 1.0
+        }
+      },
+      "chronological_pooled": {
+        "temperature": {
+          "mae": 0.6611469524712565,
+          "rmse": 0.8648429063091331,
+          "bias": 0.06288169109680189,
+          "p95_abs_error": 1.6999999999999957,
+          "max_abs_error": 2.4999999999999964
+        },
+        "humidity": {
+          "mae": 2.5399916625312104,
+          "rmse": 3.061020692688206,
+          "bias": 1.1105177098909391,
+          "p95_abs_error": 6.0051903851519075,
+          "max_abs_error": 7.590835426893854
+        }
+      }
+    },
+    "200": {
+      "chronological_1": {
+        "temperature": {
+          "mae": 1.0215463194659655,
+          "rmse": 1.2549803894974336,
+          "bias": 0.9800658098243343,
+          "p95_abs_error": 2.0999999999999943,
+          "max_abs_error": 2.4999999999999964
+        },
+        "humidity": {
+          "mae": 1.9981928697211786,
+          "rmse": 2.470401807319478,
+          "bias": -1.672233922033956,
+          "p95_abs_error": 4.482529448103674,
+          "max_abs_error": 7.303175739453437
+        },
+        "delta_branch": {
+          "mae": 0.8058650682694568,
+          "rmse": 0.9076242738280158,
+          "bias": -0.7523361479619063,
+          "p95_abs_error": 1.4158562601967037,
+          "max_abs_error": 1.7716136097161914
+        },
+        "heat_branch": {
+          "mae": 0.597610433231852,
+          "rmse": 0.6823636014656179,
+          "bias": -0.5311910922827793,
+          "p95_abs_error": 1.3412314321933412,
+          "max_abs_error": 1.9743526730614662
+        },
+        "outside_samples": 1077,
+        "reduced_samples": 1077,
+        "policy": {
+          "raw_temperature_max": 24.5,
+          "delta_median": 2.200000000000003,
+          "heat_gate_max": 4.5,
+          "shrink_fraction": 1.0
+        }
+      },
+      "chronological_2": {
+        "temperature": {
+          "mae": 0.3143925435401586,
+          "rmse": 0.4190005680585173,
+          "bias": -0.14723354678197614,
+          "p95_abs_error": 0.7824795048503362,
+          "max_abs_error": 1.2065249978177803
+        },
+        "humidity": {
+          "mae": 2.9008090425510624,
+          "rmse": 3.7299542545877515,
+          "bias": 2.4525228487909843,
+          "p95_abs_error": 6.636221535085216,
+          "max_abs_error": 7.649497196166401
+        },
+        "delta_branch": {
+          "mae": 0.24962717695091882,
+          "rmse": 0.3509089524958139,
+          "bias": -0.1195186339247495,
+          "p95_abs_error": 0.78035829629195,
+          "max_abs_error": 1.5514354034981892
+        },
+        "heat_branch": {
+          "mae": 0.3525748861416466,
+          "rmse": 0.4550749605981407,
+          "bias": -0.21490223695415572,
+          "p95_abs_error": 1.1047424425148193,
+          "max_abs_error": 1.6448732876587946
+        },
+        "outside_samples": 0,
+        "reduced_samples": 0,
+        "policy": {
+          "raw_temperature_max": 26.0,
+          "delta_median": 2.700000000000003,
+          "heat_gate_max": 4.5,
+          "shrink_fraction": 1.0
+        }
+      },
+      "chronological_3": {
+        "temperature": {
+          "mae": 0.6550704870702059,
+          "rmse": 0.7069664819241223,
+          "bias": -0.6550704870702059,
+          "p95_abs_error": 1.216462978036983,
+          "max_abs_error": 1.4157308244792297
+        },
+        "humidity": {
+          "mae": 2.5847418663446393,
+          "rmse": 2.7271883155343644,
+          "bias": 2.5847418663446393,
+          "p95_abs_error": 4.093409633476831,
+          "max_abs_error": 4.7514567262002245
+        },
+        "delta_branch": {
+          "mae": 0.7409498561738938,
+          "rmse": 0.8424080179096378,
+          "bias": 0.6696376111822815,
+          "p95_abs_error": 1.2041913819802499,
+          "max_abs_error": 1.3002495615428766
+        },
+        "heat_branch": {
+          "mae": 0.642500727977306,
+          "rmse": 0.7319469850238431,
+          "bias": 0.6217836313850001,
+          "p95_abs_error": 1.0840453629098379,
+          "max_abs_error": 1.1840453629098393
+        },
+        "outside_samples": 0,
+        "reduced_samples": 0,
+        "policy": {
+          "raw_temperature_max": 26.0,
+          "delta_median": 2.599999999999998,
+          "heat_gate_max": 4.5,
+          "shrink_fraction": 1.0
+        }
+      },
+      "latest_holdout": {
+        "temperature": {
+          "mae": 0.23056112410715807,
+          "rmse": 0.2635682944934311,
+          "bias": -0.20297488549296935,
+          "p95_abs_error": 0.4136383727414117,
+          "max_abs_error": 0.43824597303986224
+        },
+        "humidity": {
+          "mae": 0.5610565997345345,
+          "rmse": 0.6345045356683645,
+          "bias": -0.5484155980399009,
+          "p95_abs_error": 1.088450044037252,
+          "max_abs_error": 2.7741479393022956
+        },
+        "delta_branch": {
+          "mae": 0.2547928039688081,
+          "rmse": 0.2814744683543464,
+          "bias": -0.24006561385863404,
+          "p95_abs_error": 0.48405635828503524,
+          "max_abs_error": 0.5948288520390701
+        },
+        "heat_branch": {
+          "mae": 0.10447146099018188,
+          "rmse": 0.1595004788986766,
+          "bias": 0.03635083687882883,
+          "p95_abs_error": 0.3578461567439446,
+          "max_abs_error": 0.719249735372705
+        },
+        "outside_samples": 0,
+        "reduced_samples": 0,
+        "policy": {
+          "raw_temperature_max": 26.0,
+          "delta_median": 2.400000000000002,
+          "heat_gate_max": 4.5,
+          "shrink_fraction": 1.0
+        }
+      },
+      "chronological_pooled": {
+        "temperature": {
+          "mae": 0.6636697833587766,
+          "rmse": 0.8660906150861006,
+          "bias": 0.05925392532405078,
+          "p95_abs_error": 1.6999999999999957,
+          "max_abs_error": 2.4999999999999964
+        },
+        "humidity": {
+          "mae": 2.4945812595389594,
+          "rmse": 3.025061979492419,
+          "bias": 1.1216769310338888,
+          "p95_abs_error": 6.020455223499518,
+          "max_abs_error": 7.649497196166401
+        }
+      }
+    },
+    "300": {
+      "chronological_1": {
+        "temperature": {
+          "mae": 1.0223108137906645,
+          "rmse": 1.2551063971479304,
+          "bias": 0.9797590029308422,
+          "p95_abs_error": 2.0999999999999943,
+          "max_abs_error": 2.4999999999999964
+        },
+        "humidity": {
+          "mae": 1.9997393922092679,
+          "rmse": 2.4703440326117034,
+          "bias": -1.6418386605912747,
+          "p95_abs_error": 4.526601887954943,
+          "max_abs_error": 7.285741580315609
+        },
+        "delta_branch": {
+          "mae": 0.80443913294755,
+          "rmse": 0.9068641730900929,
+          "bias": -0.7510054585658806,
+          "p95_abs_error": 1.4178663021111757,
+          "max_abs_error": 1.7729386639516136
+        },
+        "heat_branch": {
+          "mae": 0.5914124124892551,
+          "rmse": 0.6760892976402803,
+          "bias": -0.5284929095471769,
+          "p95_abs_error": 1.332540987859888,
+          "max_abs_error": 1.9669212905093287
+        },
+        "outside_samples": 1077,
+        "reduced_samples": 1077,
+        "policy": {
+          "raw_temperature_max": 24.5,
+          "delta_median": 2.200000000000003,
+          "heat_gate_max": 4.5,
+          "shrink_fraction": 1.0
+        }
+      },
+      "chronological_2": {
+        "temperature": {
+          "mae": 0.31688496658744514,
+          "rmse": 0.4207328348265247,
+          "bias": -0.1522451228499392,
+          "p95_abs_error": 0.7980443205338039,
+          "max_abs_error": 1.1916610367108582
+        },
+        "humidity": {
+          "mae": 2.880573279868458,
+          "rmse": 3.7034054098996303,
+          "bias": 2.4746932140258537,
+          "p95_abs_error": 6.632428574007364,
+          "max_abs_error": 7.617033087986229
+        },
+        "delta_branch": {
+          "mae": 0.24592441546977417,
+          "rmse": 0.34508923386642226,
+          "bias": -0.11444828499069339,
+          "p95_abs_error": 0.735358580285071,
+          "max_abs_error": 1.5264426218158236
+        },
+        "heat_branch": {
+          "mae": 0.36504257994090716,
+          "rmse": 0.4653800873579138,
+          "bias": -0.22245475734554865,
+          "p95_abs_error": 1.0864833123475475,
+          "max_abs_error": 1.5929644741460125
+        },
+        "outside_samples": 0,
+        "reduced_samples": 0,
+        "policy": {
+          "raw_temperature_max": 26.0,
+          "delta_median": 2.700000000000003,
+          "heat_gate_max": 4.5,
+          "shrink_fraction": 1.0
+        }
+      },
+      "chronological_3": {
+        "temperature": {
+          "mae": 0.6606223129815297,
+          "rmse": 0.7118110232515427,
+          "bias": -0.6606223129815297,
+          "p95_abs_error": 1.2306690002889127,
+          "max_abs_error": 1.413670417122301
+        },
+        "humidity": {
+          "mae": 2.6006439185098134,
+          "rmse": 2.7384158776051772,
+          "bias": 2.6006439185098134,
+          "p95_abs_error": 4.130952357001594,
+          "max_abs_error": 4.753478853146639
+        },
+        "delta_branch": {
+          "mae": 0.7397083219246344,
+          "rmse": 0.8425947019988795,
+          "bias": 0.6682644093447843,
+          "p95_abs_error": 1.2043536577381415,
+          "max_abs_error": 1.3122359580559428
+        },
+        "heat_branch": {
+          "mae": 0.6607305554137193,
+          "rmse": 0.7521767711722699,
+          "bias": 0.6302774094256721,
+          "p95_abs_error": 1.1243907801174315,
+          "max_abs_error": 1.2253488193666762
+        },
+        "outside_samples": 0,
+        "reduced_samples": 0,
+        "policy": {
+          "raw_temperature_max": 26.0,
+          "delta_median": 2.599999999999998,
+          "heat_gate_max": 4.5,
+          "shrink_fraction": 1.0
+        }
+      },
+      "latest_holdout": {
+        "temperature": {
+          "mae": 0.25439161578521086,
+          "rmse": 0.28987076369203335,
+          "bias": -0.2303982649985331,
+          "p95_abs_error": 0.4450843995624467,
+          "max_abs_error": 0.4713715119737891
+        },
+        "humidity": {
+          "mae": 0.5302403798419072,
+          "rmse": 0.6108575759192505,
+          "bias": -0.5161275157509521,
+          "p95_abs_error": 1.1071735042607607,
+          "max_abs_error": 2.7989603656023547
+        },
+        "delta_branch": {
+          "mae": 0.26578715053555435,
+          "rmse": 0.293399047257472,
+          "bias": -0.25150482768730276,
+          "p95_abs_error": 0.5061415250741408,
+          "max_abs_error": 0.61436891366743
+        },
+        "heat_branch": {
+          "mae": 0.1097805059987466,
+          "rmse": 0.16718968422985353,
+          "bias": 0.057033433279213355,
+          "p95_abs_error": 0.38512287717282767,
+          "max_abs_error": 0.7472543725079266
+        },
+        "outside_samples": 0,
+        "reduced_samples": 0,
+        "policy": {
+          "raw_temperature_max": 26.0,
+          "delta_median": 2.400000000000002,
+          "heat_gate_max": 4.5,
+          "shrink_fraction": 1.0
+        }
+      },
+      "chronological_pooled": {
+        "temperature": {
+          "mae": 0.6666060311198798,
+          "rmse": 0.8677524837734991,
+          "bias": 0.0556305223664577,
+          "p95_abs_error": 1.6999999999999957,
+          "max_abs_error": 2.4999999999999964
+        },
+        "humidity": {
+          "mae": 2.493652196862513,
+          "rmse": 3.017544961733751,
+          "bias": 1.1444994906481307,
+          "p95_abs_error": 5.964367841493555,
+          "max_abs_error": 7.617033087986229
+        }
+      }
+    },
+    "500": {
+      "chronological_1": {
+        "temperature": {
+          "mae": 1.02202878016109,
+          "rmse": 1.2550546904817608,
+          "bias": 0.9806459651277485,
+          "p95_abs_error": 2.0999999999999943,
+          "max_abs_error": 2.4999999999999964
+        },
+        "humidity": {
+          "mae": 1.9795457280906166,
+          "rmse": 2.4440815736877544,
+          "bias": -1.5752231910197605,
+          "p95_abs_error": 4.576982178416311,
+          "max_abs_error": 7.215574728752877
+        },
+        "delta_branch": {
+          "mae": 0.8036814935864209,
+          "rmse": 0.905809496701799,
+          "bias": -0.7508713988207109,
+          "p95_abs_error": 1.4099249348531278,
+          "max_abs_error": 1.754587878649586
+        },
+        "heat_branch": {
+          "mae": 0.5831534075834794,
+          "rmse": 0.669123906731447,
+          "bias": -0.5219880894359522,
+          "p95_abs_error": 1.3235288773711975,
+          "max_abs_error": 1.950845793859338
+        },
+        "outside_samples": 1077,
+        "reduced_samples": 1077,
+        "policy": {
+          "raw_temperature_max": 24.5,
+          "delta_median": 2.200000000000003,
+          "heat_gate_max": 4.5,
+          "shrink_fraction": 1.0
+        }
+      },
+      "chronological_2": {
+        "temperature": {
+          "mae": 0.31927043241608566,
+          "rmse": 0.4236089444580823,
+          "bias": -0.15826940511596485,
+          "p95_abs_error": 0.7999661116850829,
+          "max_abs_error": 1.1963682042433312
+        },
+        "humidity": {
+          "mae": 2.8344697073521408,
+          "rmse": 3.634642329644554,
+          "bias": 2.466280657930425,
+          "p95_abs_error": 6.534455949647164,
+          "max_abs_error": 7.480435228199752
+        },
+        "delta_branch": {
+          "mae": 0.23903794652994742,
+          "rmse": 0.33502168474571536,
+          "bias": -0.11161150576214494,
+          "p95_abs_error": 0.7150978680071858,
+          "max_abs_error": 1.4852280829243263
+        },
+        "heat_branch": {
+          "mae": 0.3654994699772197,
+          "rmse": 0.46721198144780485,
+          "bias": -0.21658322800075847,
+          "p95_abs_error": 1.075515415020699,
+          "max_abs_error": 1.5979685130581882
+        },
+        "outside_samples": 0,
+        "reduced_samples": 0,
+        "policy": {
+          "raw_temperature_max": 26.0,
+          "delta_median": 2.700000000000003,
+          "heat_gate_max": 4.5,
+          "shrink_fraction": 1.0
+        }
+      },
+      "chronological_3": {
+        "temperature": {
+          "mae": 0.669437115636871,
+          "rmse": 0.7188163855529776,
+          "bias": -0.669437115636871,
+          "p95_abs_error": 1.2529610167551877,
+          "max_abs_error": 1.4188194351662915
+        },
+        "humidity": {
+          "mae": 2.5534048101382854,
+          "rmse": 2.6876702310407885,
+          "bias": 2.5534048101382854,
+          "p95_abs_error": 4.0718788728565745,
+          "max_abs_error": 4.696259409130768
+        },
+        "delta_branch": {
+          "mae": 0.7375137405749534,
+          "rmse": 0.8400200079802405,
+          "bias": 0.6636451826896879,
+          "p95_abs_error": 1.2024359257776938,
+          "max_abs_error": 1.3157130830608619
+        },
+        "heat_branch": {
+          "mae": 0.6691060803137192,
+          "rmse": 0.7611188318586644,
+          "bias": 0.6400063780660433,
+          "p95_abs_error": 1.1448364784591507,
+          "max_abs_error": 1.2554389061650357
+        },
+        "outside_samples": 0,
+        "reduced_samples": 0,
+        "policy": {
+          "raw_temperature_max": 26.0,
+          "delta_median": 2.599999999999998,
+          "heat_gate_max": 4.5,
+          "shrink_fraction": 1.0
+        }
+      },
+      "latest_holdout": {
+        "temperature": {
+          "mae": 0.25737441596832705,
+          "rmse": 0.2920205025915787,
+          "bias": -0.2316269076388072,
+          "p95_abs_error": 0.44740370206104174,
+          "max_abs_error": 0.4679469856175906
+        },
+        "humidity": {
+          "mae": 0.5353161404602567,
+          "rmse": 0.6253651808351558,
+          "bias": -0.5207198530541709,
+          "p95_abs_error": 1.1563147468702581,
+          "max_abs_error": 2.876358258687347
+        },
+        "delta_branch": {
+          "mae": 0.2761378334799888,
+          "rmse": 0.3029762482650731,
+          "bias": -0.2623271009556925,
+          "p95_abs_error": 0.503696870197305,
+          "max_abs_error": 0.6238222812381724
+        },
+        "heat_branch": {
+          "mae": 0.11445917749134411,
+          "rmse": 0.1741915863913444,
+          "bias": 0.07534565396479828,
+          "p95_abs_error": 0.3905333380646443,
+          "max_abs_error": 0.7774486516950816
+        },
+        "outside_samples": 0,
+        "reduced_samples": 0,
+        "policy": {
+          "raw_temperature_max": 26.0,
+          "delta_median": 2.400000000000002,
+          "heat_gate_max": 4.5,
+          "shrink_fraction": 1.0
+        }
+      },
+      "chronological_pooled": {
+        "temperature": {
+          "mae": 0.6702454427380156,
+          "rmse": 0.8701156647374735,
+          "bias": 0.05097981479163756,
+          "p95_abs_error": 1.6999999999999957,
+          "max_abs_error": 2.4999999999999964
+        },
+        "humidity": {
+          "mae": 2.4558067485270145,
+          "rmse": 2.9669137092331512,
+          "bias": 1.1481540923496496,
+          "p95_abs_error": 5.844433994912345,
+          "max_abs_error": 7.480435228199752
+        }
+      }
+    }
+  },
+  "sizes": {
+    "100": {
+      "directory": "build/snow2s-tree-count/candidates/trees-100",
+      "header_text_bytes": 255573,
+      "host_compiled_model_array_bytes": 93600,
+      "nodes": 11600,
+      "bytes_per_node": 8,
+      "total_trees": 400,
+      "reduction_vs_500": 0.7975918621548682
+    },
+    "200": {
+      "directory": "build/snow2s-tree-count/candidates/trees-200",
+      "header_text_bytes": 508703,
+      "host_compiled_model_array_bytes": 186032,
+      "nodes": 23054,
+      "bytes_per_node": 8,
+      "total_trees": 800,
+      "reduction_vs_500": 0.5977095010725901
+    },
+    "300": {
+      "directory": "build/snow2s-tree-count/candidates/trees-300",
+      "header_text_bytes": 761625,
+      "host_compiled_model_array_bytes": 278352,
+      "nodes": 34494,
+      "bytes_per_node": 8,
+      "total_trees": 1200,
+      "reduction_vs_500": 0.39806933776209263
+    },
+    "500": {
+      "directory": "build/snow2s-tree-count/candidates/trees-500",
+      "header_text_bytes": 1271544,
+      "host_compiled_model_array_bytes": 462432,
+      "nodes": 57304,
+      "bytes_per_node": 8,
+      "total_trees": 2000,
+      "reduction_vs_500": 0.0
+    }
+  },
+  "baseline_holdout_reproduced": true,
+  "selection_checks": {
+    "100": {
+      "passed": false,
+      "failures": [
+        {
+          "split": "chronological_3",
+          "target": "humidity",
+          "metric": "mae",
+          "increase": 0.12254025968674354,
+          "allowed_increase": 0.1
+        },
+        {
+          "split": "chronological_3",
+          "target": "humidity",
+          "metric": "p95_abs_error",
+          "increase": 0.23829645487228923,
+          "allowed_increase": 0.2
+        }
+      ]
+    },
+    "200": {
+      "passed": true,
+      "failures": []
+    },
+    "300": {
+      "passed": true,
+      "failures": []
+    },
+    "500": {
+      "passed": true,
+      "failures": []
+    }
+  },
+  "recommended_trees_per_model": 200
+}

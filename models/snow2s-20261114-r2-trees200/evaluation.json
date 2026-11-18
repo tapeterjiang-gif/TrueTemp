@@ -1,0 +1,73 @@
+{
+  "samples": 10402,
+  "old_samples": 8557,
+  "new_samples": 1845,
+  "train_samples": 10027,
+  "holdout_samples": 369,
+  "holdout_start": "2026-11-14 12:11:56.238000+00:00",
+  "holdout_end": "2026-11-14 14:00:21.983000+00:00",
+  "gap_seconds": 60,
+  "pairing_window_seconds": 5,
+  "reference_temperature_range": [
+    20.0,
+    24.7
+  ],
+  "new_reference_temperature_range": [
+    23.4,
+    24.7
+  ],
+  "holdout_candidate": {
+    "temperature": {
+      "mae": 0.08530692201130383,
+      "rmse": 0.13312133189566006,
+      "bias": -0.043573379763933884,
+      "p95_abs_error": 0.18330198360327257,
+      "max_abs_error": 0.7000000000000028
+    },
+    "humidity": {
+      "mae": 0.7453099248674688,
+      "rmse": 0.8987314809911973,
+      "bias": 0.6618576171831396,
+      "p95_abs_error": 1.8190831123898732,
+      "max_abs_error": 2.199452451135542
+    },
+    "delta_branch": {
+      "mae": 0.13243447005984962,
+      "rmse": 0.1603352968018026,
+      "bias": -0.05923158198467957,
+      "p95_abs_error": 0.30320899519245714,
+      "max_abs_error": 0.4804636702419187
+    },
+    "heat_branch": {
+      "mae": 0.42620579988663754,
+      "rmse": 0.445809118517795,
+      "bias": -0.4261387238701291,
+      "p95_abs_error": 0.6496612803173409,
+      "max_abs_error": 0.7886827329241379
+    },
+    "outside_samples": 7,
+    "reduced_samples": 7,
+    "policy": {
+      "raw_temperature_max": 27.0,
+      "delta_median": 2.3999999999999986,
+      "heat_gate_max": 4.5,
+      "shrink_fraction": 1.0
+    }
+  },
+  "holdout_previous": {
+    "temperature": {
+      "mae": 0.815323695863353,
+      "rmse": 0.8238513006201561,
+      "bias": 0.815323695863353,
+      "p95_abs_error": 1.0176864018569773,
+      "max_abs_error": 1.11909370375065
+    },
+    "humidity": {
+      "mae": 2.5431961764453717,
+      "rmse": 2.5672070991356226,
+      "bias": -2.5431961764453717,
+      "p95_abs_error": 3.1919838676849777,
+      "max_abs_error": 3.472453312353416
+    }
+  }
+}

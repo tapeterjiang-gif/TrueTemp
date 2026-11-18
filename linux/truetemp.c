@@ -12,6 +12,7 @@
 
 #include "truetemp.h"
 #ifdef TRUETEMP_SNOW2S
+#define TRUETEMP_RUNTIME_COMPACT_NODES_VERSION 1
 #define TRUETEMP_RUNTIME_DELTA_GATE_VERSION 1
 #include "truetemp_snow2s_model_data.h"
 #if TRUETEMP_MODEL_PROTOCOL_VERSION != 4
@@ -39,7 +40,12 @@ static float predict_trees(const truetemp_node_t *nodes, const uint16_t *roots,
 
         while (!nodes[node].is_leaf) {
             const truetemp_node_t *n = &nodes[node];
-            node = (x[n->feature] <= n->threshold)
+#ifdef TRUETEMP_MODEL_COMPACT_NODES
+            const float threshold = n->value;
+#else
+            const float threshold = n->threshold;
+#endif
+            node = (x[n->feature] <= threshold)
                        ? (uint16_t)(node + 1)
                        : n->right;
         }

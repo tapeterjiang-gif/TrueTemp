@@ -12,6 +12,7 @@
 
 ```
 data/                      训练/测试数据（xlsx，REF + DUT 两个 sheet）
+data/rk3506/               RK3506（Snow2S v4）采集数据
 models/                    模型文件（.pkl / .json）
 esp32/                     ESP32 集成（truetemp.h / truetemp.c / 生成的数据头文件）
 linux/                     Rockchip 集成（PX30 / RK3506：C 接口 + Python 推理）
@@ -135,12 +136,12 @@ Rockchip Linux 推理使用 float 树模型。默认目标使用既有 DUT v3 �
 
 #### Snow2S v4
 
-先用 `./collect collect --interval 10` 同时采集参考表与 Snow2S v4 DUT。训练优先读取同一 XLSX 中的原始接收记录，只选 `version=4` 的 DUT 行。训练合并 10 毫秒内载荷相同的重复回调，在 ±2 秒内优先匹配时间差最小的 REF/DUT，每条记录最多用一次。早期 XLSX 沿用同秒配对。
+先用 `./collect collect --snow2s --interval 10` 同时采集参考表与 Snow2S v4 DUT，默认保存到 `data/rk3506/`。训练时显式指定要使用的文件。训练优先读取同一 XLSX 中的原始接收记录，只选 `version=4` 的 DUT 行。训练合并 10 毫秒内载荷相同的重复回调，在 ±2 秒内优先匹配时间差最小的 REF/DUT，每条记录最多用一次。早期 XLSX 沿用同秒配对。
 背光按原始 0～1000 输入，Wi-Fi 特征为
 `wifi_tx_bytes`（Byte/s）。C5 温度和旧 Wi-Fi 负载百分比不属于此模型。
 
 ```bash
-python3 train_coupled_model.py --snow2s data/你的采集文件.xlsx
+python3 train_coupled_model.py --snow2s data/rk3506/20261111_1708.xlsx
 python3 linux/infer_truetemp.py --snow2s 26.1 25.3 38.2 32.0 7200 1000 120 11 1800 0
 make -C linux snow2s
 ```
@@ -217,6 +218,31 @@ make -C linux snow2s SNOW2S_MODEL_DIR=../models/snow2s-20261113-gate45-shrink100
 `truetemp_snow2s_model_data.h`，编译库和调用方均定义 `TRUETEMP_SNOW2S`。
 完整接入说明见候选包 `README.md`，本机验证结果见 `validation.json`。
 此版仍在 26℃ 处直接切换；77 条接近上限的历史工况在边界处的最大输出跳变约 2.301℃。
+
+#### Snow2S 模型无损存储压缩
+
+`models/snow2s-20261113-gate45-shrink100-compact/` 保留上述候选版的全部模型树、
+float32 数值及 4.5℃ / 100% 策略。分裂阈值和叶子值按节点类型共用一个 float，
+每个节点由 12 字节减至 8 字节；自动生成的数据行同时省略多余空白。
+
+| 项目 | 原格式 | 紧凑格式 |
+|---|---:|---:|
+| 头文件文本 | 1,991,688 字节 | 1,254,127 字节 |
+| 宿主编译后的模型只读数组，含树根索引 | 685,072 字节 | 458,048 字节 |
+
+13,503 组输入的温度、湿度、露点和绝对湿度在两种 C 格式下逐位一致。
+原始模型 JSON 和配对数据保持一致；大小及验证详情见该目录的 `validation.json`。
+Snow2S 导出默认使用紧凑格式，原 v3 格式保留。新模型头需与支持紧凑节点的 `truetemp.c`
+一起接入；新推理代码同时兼容旧节点格式。实机精度和 26℃ 直接切换行为仍沿用前述候选版的验证边界。
+
+#### Snow2S 新增数据重训（20261113-r2）
+
+新候选包为 `models/snow2s-20261113-r2/`，使用 9 个文件按 ±5 秒配对得到的 7,803 对样本。
+其中新文件 `20261113_0756.xlsx` 提供 3,153 对，旧文件完整尾部补入 39 对，原有 4,611 对全部保留。
+保持 4.5℃ 少扣阈值、100% 比例及紧凑 float 格式；训练温差中位数更新为 2.5℃，原始温度上限仍为 26℃。
+新文件末尾 631 对的时间留出测试中，温度 MAE 从上一版的 1.115℃ 降至 0.257℃，
+湿度 MAE 从 2.354 降至 0.535 个百分点；全部数据仍缺少参考温度 24～25℃ 的样本。
+数据、验证范围和复现方式见该候选包的 `README.md`、`evaluation.json` 和 `validation.json`。
 
 #### 既有 v3
 

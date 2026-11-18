@@ -1,0 +1,59 @@
+{
+  "scope": "Host C/Python parity and training replay; field accuracy not established",
+  "samples": 7803,
+  "compared_samples": 16440,
+  "c_python_max_abs_diff": {
+    "temperature": 2.7105112405223508e-05,
+    "humidity": 6.894840845461658e-05,
+    "dew_point": 6.08709091665105e-06,
+    "absolute_humidity": 2.939232082610488e-06
+  },
+  "policy": {
+    "strategy": "snow2s_delta_gate_v1",
+    "raw_temperature_max": 26.0,
+    "delta_median": 2.5,
+    "heat_gate_max": 4.5,
+    "shrink_fraction": 1.0
+  },
+  "example_input": {
+    "raw_temperature": 27.0,
+    "raw_humidity": 32.3,
+    "temperature_soc": 55.1,
+    "temperature_co2": 45.3,
+    "time_uptime": 572.0,
+    "screen_brightness": 980.0,
+    "screen_on_duration_s": 466.0,
+    "cpu_load_10s": 7.7,
+    "wifi_tx_bytes": 241.0,
+    "power_charge_ma": 0.0
+  },
+  "example_output": "temperature=24.5000 humidity=34.1746 dew_point=7.7005 absolute_humidity=7.6486",
+  "near_boundary_n": 417,
+  "probe_27_near_boundary_min_median_max": [
+    22.410505294799805,
+    24.5,
+    24.5
+  ],
+  "near_boundary_heat_gate_pass_count": 401,
+  "switch_jump_near_boundary_min_median_max": [
+    0.021482467651367188,
+    0.7113208770751953,
+    2.3667430877685547
+  ],
+  "header_text_bytes": 1271544,
+  "host_compiled_model_array_bytes": 462432,
+  "trees": {
+    "temperature": 500,
+    "vapor_pressure": 500,
+    "delta": 500,
+    "heat": 500
+  },
+  "training_temperature_mae": 0.029277378636171577,
+  "input_files_changed_after_snapshot": [],
+  "checks": [
+    "frozen source hashes",
+    "code and model package hashes",
+    "C99 host compilation with warnings as errors",
+    "C/Python parity on training and synthetic raw-temperature probes"
+  ]
+}

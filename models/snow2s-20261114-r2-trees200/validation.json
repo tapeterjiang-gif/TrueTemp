@@ -1,0 +1,19 @@
+{
+  "samples": 10603,
+  "c_python_max_abs_diff": [
+    2.3116292343416944e-05,
+    5.951087062072702e-05,
+    5.0851475847935035e-06,
+    3.248771282216012e-06
+  ],
+  "c99_compile": "passed",
+  "comparison": "Python reference uses float32 policy constants to match C; tree evaluation remains double precision.",
+  "unrounded_python_max_abs_diff": [
+    0.7400432586669936,
+    1.9952893050541078,
+    5.0851475847935035e-06,
+    0.02478488168093307
+  ],
+  "unrounded_policy_branch_mismatches": 7,
+  "limitation": "Unmodified Python inference on float32 inputs can select a different branch at raw 27.1 C; production C compares float32 input and threshold consistently."
+}

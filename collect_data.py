@@ -8,6 +8,7 @@ BLE 实时采集 REF（SHT4x 参考表）与 DUT（Qingping 设备）广播，�
 用法:
     python3 collect_data.py scan                     # 扫描 BLE 设备
     python3 collect_data.py collect --ref UUID --dut UUID [--output data] [--interval 5]
+    python3 collect_data.py collect --snow2s         # 保存到 data/rk3506/
     python3 collect_data.py collect --demo 5         # 模拟采集 5 秒（无硬件验证）
 
 输出:
@@ -547,7 +548,8 @@ def main():
     p_collect = sub.add_parser('collect', help='采集 REF/DUT 广播并保存为 xlsx')
     p_collect.add_argument('--ref', help='REFERENCE 设备 BLE UUID（可先用 scan 获取）')
     p_collect.add_argument('--dut', help='DUT 设备 BLE UUID（可选）')
-    p_collect.add_argument('--output', default='data', help='输出目录（默认 data/）')
+    p_collect.add_argument('--snow2s', action='store_true', help='将 RK3506 采集数据保存到 data/rk3506/')
+    p_collect.add_argument('--output', type=Path, help='覆盖输出目录（默认 data/，--snow2s 时为 data/rk3506/）')
     p_collect.add_argument('--interval', type=float, default=5.0, help='采样/刷新间隔秒数（默认 5）')
     p_collect.add_argument('--demo', type=float, default=0, help='模拟采集 N 秒（无硬件验证）')
 
@@ -568,15 +570,16 @@ def main():
     elif args.command == 'probe':
         asyncio.run(probe_device(args.device, args.seconds))
     else:
+        output = args.output or Path('data/rk3506' if args.snow2s else 'data')
         if args.demo:
-            asyncio.run(run_collect(args.ref, args.dut, args.output, args.interval, demo=True))
+            asyncio.run(run_collect(args.ref, args.dut, output, args.interval, demo=True))
         else:
             cfg = load_config()
             ref = args.ref or cfg.get('ref')
             dut = args.dut or cfg.get('dut')
             if not ref:
                 parser.error('collect 需要 --ref UUID（或先运行 ./collect set 保存配置）')
-            asyncio.run(run_collect(ref, dut, args.output, args.interval))
+            asyncio.run(run_collect(ref, dut, output, args.interval))
 
 
 if __name__ == '__main__':

@@ -355,10 +355,11 @@ def main():
     parser.add_argument('--pair-window-seconds', type=float,
                         help='Snow2S 原始广播配对容差（秒，默认 2）')
     parser.add_argument('--output-dir', type=Path)
-    parser.add_argument('files', type=Path, nargs='*', help='TrueTemp 采集的 REF/DUT XLSX 文件')
+    parser.add_argument('files', type=Path, nargs='*',
+                        help='TrueTemp 采集的 REF/DUT XLSX 文件（RK3506 数据位于 data/rk3506/）')
     args = parser.parse_args()
     if args.snow2s and not args.files:
-        parser.error('--snow2s 需要显式指定包含 DUT v4 数据的 XLSX 文件')
+        parser.error('--snow2s 需要显式指定包含 DUT v4 数据的 XLSX 文件，例如 data/rk3506/20261111_1708.xlsx')
     pair_window_ms = PAIR_WINDOW_MS
     if args.pair_window_seconds is not None:
         if not args.snow2s:

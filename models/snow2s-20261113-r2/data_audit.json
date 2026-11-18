@@ -1,0 +1,330 @@
+{
+  "files": [
+    {
+      "file": "20261111_1708.xlsx",
+      "ref_callbacks": 1334,
+      "dut_callbacks": 1596,
+      "distinct_ref": 708,
+      "distinct_dut_v4": 1596,
+      "pairs": 606,
+      "previous_pairs": 606,
+      "changed": false,
+      "start": "2026-11-11 17:08:52.511000",
+      "end": "2026-11-11 19:24:28.162000",
+      "reference_temperature_range": [
+        20.3,
+        21.4
+      ],
+      "raw_temperature_range": [
+        22.5,
+        25.4
+      ],
+      "reference_humidity_range": [
+        33.7,
+        38.4
+      ],
+      "pairs_ref_24_to_25": 0,
+      "pair_delta_p50_p95_max": [
+        1.1715,
+        3.9005,
+        4.996
+      ]
+    },
+    {
+      "file": "20261111_1924.xlsx",
+      "ref_callbacks": 1265,
+      "dut_callbacks": 1680,
+      "distinct_ref": 669,
+      "distinct_dut_v4": 1680,
+      "pairs": 572,
+      "previous_pairs": 572,
+      "changed": false,
+      "start": "2026-11-11 19:25:30.304000",
+      "end": "2026-11-11 21:57:33.159000",
+      "reference_temperature_range": [
+        20.3,
+        22.9
+      ],
+      "raw_temperature_range": [
+        22.8,
+        26.0
+      ],
+      "reference_humidity_range": [
+        37.6,
+        48.0
+      ],
+      "pairs_ref_24_to_25": 0,
+      "pair_delta_p50_p95_max": [
+        1.189,
+        4.175399999999999,
+        4.831
+      ]
+    },
+    {
+      "file": "20261111_2157.xlsx",
+      "ref_callbacks": 5092,
+      "dut_callbacks": 5925,
+      "distinct_ref": 2663,
+      "distinct_dut_v4": 5925,
+      "pairs": 2147,
+      "previous_pairs": 2108,
+      "changed": false,
+      "start": "2026-11-11 21:57:49.197000",
+      "end": "2026-11-12 08:03:47.759000",
+      "reference_temperature_range": [
+        20.7,
+        21.6
+      ],
+      "raw_temperature_range": [
+        22.6,
+        25.3
+      ],
+      "reference_humidity_range": [
+        39.4,
+        50.6
+      ],
+      "pairs_ref_24_to_25": 0,
+      "pair_delta_p50_p95_max": [
+        1.474,
+        4.1594,
+        4.845
+      ]
+    },
+    {
+      "file": "20261113_0756.xlsx",
+      "ref_callbacks": 7235,
+      "dut_callbacks": 8674,
+      "distinct_ref": 3756,
+      "distinct_dut_v4": 8674,
+      "pairs": 3153,
+      "previous_pairs": 0,
+      "changed": true,
+      "start": "2026-11-13 07:57:21.837000",
+      "end": "2026-11-13 21:27:07.590000",
+      "reference_temperature_range": [
+        21.9,
+        22.8
+      ],
+      "raw_temperature_range": [
+        22.3,
+        25.8
+      ],
+      "reference_humidity_range": [
+        31.3,
+        46.3
+      ],
+      "pairs_ref_24_to_25": 0,
+      "pair_delta_p50_p95_max": [
+        1.421,
+        3.951799999999999,
+        4.843
+      ]
+    },
+    {
+      "file": "r01_cold_start_baseline_screen_on_50pct_battery_wifi_on_idle_60min_20261111_1048.xlsx",
+      "ref_callbacks": 545,
+      "dut_callbacks": 675,
+      "distinct_ref": 299,
+      "distinct_dut_v4": 675,
+      "pairs": 240,
+      "previous_pairs": 240,
+      "changed": false,
+      "start": "2026-11-11 10:49:37.438000",
+      "end": "2026-11-11 11:49:12.144000",
+      "reference_temperature_range": [
+        20.0,
+        21.1
+      ],
+      "raw_temperature_range": [
+        21.9,
+        23.6
+      ],
+      "reference_humidity_range": [
+        31.7,
+        45.1
+      ],
+      "pairs_ref_24_to_25": 0,
+      "pair_delta_p50_p95_max": [
+        1.157,
+        4.1632,
+        4.802
+      ]
+    },
+    {
+      "file": "r02_low_brightness_screen_on_20pct_battery_idle_20261111_1149.xlsx",
+      "ref_callbacks": 321,
+      "dut_callbacks": 372,
+      "distinct_ref": 171,
+      "distinct_dut_v4": 372,
+      "pairs": 135,
+      "previous_pairs": 135,
+      "changed": false,
+      "start": "2026-11-11 11:49:54.227000",
+      "end": "2026-11-11 12:27:11.870000",
+      "reference_temperature_range": [
+        20.4,
+        21.0
+      ],
+      "raw_temperature_range": [
+        21.9,
+        23.6
+      ],
+      "reference_humidity_range": [
+        33.5,
+        48.9
+      ],
+      "pairs_ref_24_to_25": 0,
+      "pair_delta_p50_p95_max": [
+        1.144,
+        3.383799999999999,
+        4.856
+      ]
+    },
+    {
+      "file": "r03_high_brightness_screen_on_100pct_battery_idle_20261111_1227.xlsx",
+      "ref_callbacks": 350,
+      "dut_callbacks": 468,
+      "distinct_ref": 195,
+      "distinct_dut_v4": 468,
+      "pairs": 162,
+      "previous_pairs": 162,
+      "changed": false,
+      "start": "2026-11-11 12:27:45.947000",
+      "end": "2026-11-11 13:12:40.424000",
+      "reference_temperature_range": [
+        20.7,
+        21.7
+      ],
+      "raw_temperature_range": [
+        22.2,
+        24.4
+      ],
+      "reference_humidity_range": [
+        30.8,
+        36.7
+      ],
+      "pairs_ref_24_to_25": 0,
+      "pair_delta_p50_p95_max": [
+        1.4689999999999999,
+        4.160649999999998,
+        4.778
+      ]
+    },
+    {
+      "file": "r04_screen_off_battery_idle_20261111_1556.xlsx",
+      "ref_callbacks": 369,
+      "dut_callbacks": 510,
+      "distinct_ref": 204,
+      "distinct_dut_v4": 510,
+      "pairs": 170,
+      "previous_pairs": 170,
+      "changed": false,
+      "start": "2026-11-11 15:57:06.273000",
+      "end": "2026-11-11 16:42:40.686000",
+      "reference_temperature_range": [
+        20.9,
+        21.3
+      ],
+      "raw_temperature_range": [
+        21.4,
+        23.3
+      ],
+      "reference_humidity_range": [
+        31.7,
+        32.9
+      ],
+      "pairs_ref_24_to_25": 0,
+      "pair_delta_p50_p95_max": [
+        1.1825,
+        4.190199999999999,
+        4.851
+      ]
+    },
+    {
+      "file": "r05_charging_screen_on_50pct_idle_20261111_1314.xlsx",
+      "ref_callbacks": 1402,
+      "dut_callbacks": 1713,
+      "distinct_ref": 732,
+      "distinct_dut_v4": 1713,
+      "pairs": 618,
+      "previous_pairs": 618,
+      "changed": false,
+      "start": "2026-11-11 13:14:54.781000",
+      "end": "2026-11-11 15:56:02.075000",
+      "reference_temperature_range": [
+        21.2,
+        21.5
+      ],
+      "raw_temperature_range": [
+        23.2,
+        24.2
+      ],
+      "reference_humidity_range": [
+        29.8,
+        34.4
+      ],
+      "pairs_ref_24_to_25": 0,
+      "pair_delta_p50_p95_max": [
+        1.206,
+        3.93615,
+        4.861
+      ]
+    }
+  ],
+  "total_pairs": 7803,
+  "reference_temperature_range": [
+    20.0,
+    22.9
+  ],
+  "raw_temperature_range": [
+    21.4,
+    26.0
+  ],
+  "all_input_ranges": {
+    "raw_temperature": [
+      21.4,
+      26.0
+    ],
+    "raw_humidity": [
+      29.4,
+      43.7
+    ],
+    "temperature_soc": [
+      31.6,
+      57.4
+    ],
+    "temperature_co2": [
+      24.4,
+      47.6
+    ],
+    "time_uptime": [
+      28.0,
+      7200.0
+    ],
+    "screen_brightness": [
+      0.0,
+      1000.0
+    ],
+    "screen_on_duration_s": [
+      0.0,
+      7200.0
+    ],
+    "cpu_load_10s": [
+      0.0,
+      52.9
+    ],
+    "wifi_tx_bytes": [
+      0.0,
+      4233.0
+    ],
+    "power_charge_ma": [
+      0.0,
+      476.0
+    ]
+  },
+  "delta_median": 2.5,
+  "pair_window_seconds": 5.0,
+  "previous_saved_pairs_retained": 4611,
+  "previous_saved_pairs_removed_or_rematched": 0,
+  "additional_pairs_since_previous_model": 3192
+}

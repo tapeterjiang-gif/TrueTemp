@@ -3,6 +3,7 @@ import json
 import math
 from pathlib import Path
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
@@ -56,14 +57,18 @@ class Outputs(ctypes.Structure):
     _fields_ = [(name, ctypes.c_float) for name in ('temperature', 'humidity', 'dew_point', 'absolute_humidity')]
 
 
-def compile_runtime(path):
+def compile_runtime(path, *, compact_nodes=True):
     for filename in ('truetemp.c', 'truetemp.h'):
         shutil.copyfile(ROOT / 'linux' / filename, path / filename)
     gen_linux_data(str(path / 'model_temperature.json'), str(path / 'model_vapor_pressure.json'),
-                   str(path / 'truetemp_snow2s_model_data.h'), snow2s=True)
+                   str(path / 'truetemp_snow2s_model_data.h'), snow2s=True, compact_nodes=compact_nodes)
+    source = path / 'runtime_size_check.c'
+    node_bytes = 8 if compact_nodes else 12
+    source.write_text('#include "truetemp.c"\n'
+                      f'typedef char node_size_check[(sizeof(truetemp_node_t) == {node_bytes}) ? 1 : -1];\n')
     library = path / 'libtruetemp.so'
     subprocess.run(['cc', '-shared', '-fPIC', '-O2', '-std=c99', '-Wall', '-Wextra', '-Werror',
-                    '-DTRUETEMP_SNOW2S', str(path / 'truetemp.c'), '-lm', '-o', str(library)],
+                    '-DTRUETEMP_SNOW2S', str(source), '-lm', '-o', str(library)],
                    check=True, capture_output=True)
     loaded = ctypes.CDLL(str(library))
     loaded.truetemp_compensate_snow2s.argtypes = [ctypes.POINTER(Inputs), ctypes.POINTER(Outputs)]
@@ -78,6 +83,33 @@ def infer_c(library, values):
 
 
 class Snow2SHybridTests(unittest.TestCase):
+    def test_compact_and_legacy_nodes_produce_identical_float_bits_at_boundaries(self):
+        with tempfile.TemporaryDirectory() as directory:
+            libraries = []
+            for compact in (False, True):
+                path = Path(directory) / ('compact' if compact else 'legacy')
+                path.mkdir()
+                write_models(path, policy())
+                libraries.append(compile_runtime(path, compact_nodes=compact))
+            for raw in (26, 26.001, 27, 50):
+                for co2 in (29.999, 30, 30.001):
+                    for brightness in (499.999, 500, 500.001):
+                        values = [raw, 40, 45, co2, 300, brightness, 100, 10, 200, 0]
+                        outputs = [struct.pack('4f', *infer_c(lib, values)) for lib in libraries]
+                        self.assertEqual(outputs[0], outputs[1])
+
+    def test_compact_absolute_model_rejects_an_old_node_runtime(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory)
+            write_models(path, None)
+            gen_linux_data(str(path / 'model_temperature.json'), str(path / 'model_vapor_pressure.json'),
+                           str(path / 'truetemp_snow2s_model_data.h'), snow2s=True)
+            source = path / 'old_runtime.c'
+            source.write_text('#include "truetemp_snow2s_model_data.h"\n')
+            result = subprocess.run(['cc', '-fsyntax-only', str(source)], text=True, capture_output=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('requires the compact-node runtime', result.stderr)
+
     def test_c_and_python_switch_boundaries_and_humidity_follow_final_temperature(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory)
