@@ -1,0 +1,85 @@
+{
+  "previous_model": "models/snow2s-20261114-r3-trees200",
+  "historical_pairs": 15358,
+  "new_pairs": 1341,
+  "train_pairs": 16423,
+  "holdout_pairs": 269,
+  "excluded_gap_pairs": 7,
+  "holdout_start": "2026-11-25T18:41:15.269000+08:00",
+  "holdout_end": "2026-11-25T19:15:35.829000+08:00",
+  "gap_seconds": 60,
+  "new_reference_range": {
+    "temperature": [
+      25.3,
+      26.4
+    ],
+    "humidity": [
+      25.4,
+      29.0
+    ]
+  },
+  "new_input_range": {
+    "raw_temperature": [
+      28.8,
+      29.9
+    ],
+    "raw_humidity": [
+      18.2,
+      20.0
+    ]
+  },
+  "holdout_reference_range": {
+    "temperature": [
+      25.3,
+      25.9
+    ],
+    "humidity": [
+      26.7,
+      29.0
+    ]
+  },
+  "holdout_previous_outside_temperature_samples": 269,
+  "holdout_candidate_outside_temperature_samples": 0,
+  "holdout_raw": {
+    "temperature": {
+      "mae": 3.6371747211895906,
+      "rmse": 3.6377716942694813,
+      "bias": 3.6371747211895906,
+      "p95_abs_error": 3.700000000000003
+    },
+    "humidity": {
+      "mae": 8.25092936802974,
+      "rmse": 8.254981598379919,
+      "bias": -8.25092936802974,
+      "p95_abs_error": 8.7
+    }
+  },
+  "holdout_previous": {
+    "temperature": {
+      "mae": 1.3420858124834245,
+      "rmse": 1.343944596687438,
+      "bias": 1.3420858124834245,
+      "p95_abs_error": 1.433347383416229
+    },
+    "humidity": {
+      "mae": 8.151895014965161,
+      "rmse": 8.15644253592642,
+      "bias": -8.151895014965161,
+      "p95_abs_error": 8.597069552927277
+    }
+  },
+  "holdout_candidate": {
+    "temperature": {
+      "mae": 0.13260209744147194,
+      "rmse": 0.18378539544060707,
+      "bias": 0.10258374898751454,
+      "p95_abs_error": 0.40450398494075657
+    },
+    "humidity": {
+      "mae": 0.5149374511591801,
+      "rmse": 0.6322648726591388,
+      "bias": -0.5100080435325791,
+      "p95_abs_error": 1.3222214281608855
+    }
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "protocol_version": 4,
+  "samples": 16699,
+  "features": [
+    "raw_temperature",
+    "raw_humidity",
+    "temperature_soc",
+    "temperature_co2",
+    "time_uptime",
+    "screen_brightness",
+    "screen_on_duration_s",
+    "cpu_load_10s",
+    "wifi_tx_bytes",
+    "power_charge_ma"
+  ],
+  "training_parameters": {
+    "objective": "regression",
+    "metric": "rmse",
+    "boosting_type": "gbdt",
+    "num_leaves": 15,
+    "max_depth": 5,
+    "learning_rate": 0.05,
+    "n_estimators": 200,
+    "min_data_in_leaf": 8,
+    "feature_fraction": 0.8,
+    "bagging_fraction": 0.8,
+    "bagging_freq": 5,
+    "lambda_l1": 0.1,
+    "lambda_l2": 0.1,
+    "verbose": -1,
+    "random_state": 42,
+    "n_jobs": 2
+  },
+  "raw_pair_window_seconds": 5.0,
+  "temperature_policy": {
+    "strategy": "snow2s_delta_gate_v1",
+    "raw_temperature_max": 29.9,
+    "delta_median": 2.3999999999999986,
+    "heat_gate_max": 4.5,
+    "shrink_fraction": 1.0
+  },
+  "input_ranges": {
+    "raw_temperature": [
+      21.4,
+      29.9
+    ],
+    "raw_humidity": [
+      18.2,
+      43.7
+    ],
+    "temperature_soc": [
+      31.6,
+      59.2
+    ],
+    "temperature_co2": [
+      24.4,
+      49.1
+    ],
+    "time_uptime": [
+      27.0,
+      7200.0
+    ],
+    "screen_brightness": [
+      0.0,
+      1000.0
+    ],
+    "screen_on_duration_s": [
+      0.0,
+      7200.0
+    ],
+    "cpu_load_10s": [
+      0.0,
+      56.5
+    ],
+    "wifi_tx_bytes": [
+      0.0,
+      4233.0
+    ],
+    "power_charge_ma": [
+      0.0,
+      476.0
+    ]
+  },
+  "reference_ranges": {
+    "temperature": [
+      20.0,
+      26.4
+    ],
+    "humidity": [
+      25.4,
+      50.6
+    ]
+  },
+  "source_sha256": {
+    "models/snow2s-20261114-r3-trees200/training_pairs.csv": "271c22818574c7105ff911b6000b5b1644c1df64f6fa715754e979d4d8a6bbd9",
+    "data/rk3506/20261125_1552.xlsx": "591f18c22338fa4aadb662a5c49deb93d686fc90259adb82c3cbdbdc3ec96d7f"
+  },
+  "training_recipe": "build/snow2s-20261125-trees200/train.py",
+  "versions": {
+    "python": "3.12.14",
+    "lightgbm": "4.7.0",
+    "numpy": "2.5.5",
+    "pandas": "3.1.1"
+  },
+  "validation_scope": "The final model was refitted on all pairs after a within-session chronological holdout."
+}

@@ -1,0 +1,21 @@
+{
+  "host_compile": true,
+  "rows": 19381,
+  "comparison": "Python uses float32 inputs and policy constants for the synthetic boundary probes and aligned comparison.",
+  "max_abs_c_python_aligned": {
+    "temperature": 2.371647661902898e-05,
+    "humidity": 6.371706876251437e-05,
+    "dew_point": 5.414293486438737e-06,
+    "absolute_humidity": 4.04564272571406e-06
+  },
+  "max_abs_c_python_original_inputs": {
+    "temperature": 2.371647661902898e-05,
+    "humidity": 6.554381552348332e-05,
+    "dew_point": 5.174765354887256e-06,
+    "absolute_humidity": 3.977068887550672e-06
+  },
+  "boundary_probes": 1341,
+  "boundary_temperature_jump_max": 1.6373424530029297,
+  "model_header_bytes": 510325,
+  "tree_count": 800
+}
